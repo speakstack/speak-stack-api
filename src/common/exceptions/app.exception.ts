@@ -1,5 +1,5 @@
-import { HttpException } from '@nestjs/common';
-import { ErrorCode } from '../enums/error-code.enum';
+import { HttpException } from "@nestjs/common";
+import { ErrorCode } from "../enums/error-code.enum";
 
 export type ErrorDetails = string | Record<string, string>;
 

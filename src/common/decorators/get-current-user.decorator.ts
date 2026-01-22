@@ -1,5 +1,5 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { Request } from 'express';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import { Request } from "express";
 
 export interface JwtPayload {
   sub: string;
@@ -40,11 +40,11 @@ export const GetCurrentUserWithRefreshToken = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<Request>();
     const user = request.user as JwtPayload;
     const refreshToken = request.headers.authorization
-      ?.replace('Bearer ', '')
+      ?.replace("Bearer ", "")
       .trim();
     return {
       ...user,
-      refreshToken: refreshToken || '',
+      refreshToken: refreshToken || "",
     };
   },
 );

@@ -1,5 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
-import { Public, ApiSuccessMessage } from '../common';
+import { Controller, Get } from "@nestjs/common";
+import { Public, ApiSuccessMessage } from "../common";
 
 interface HealthStatus {
   status: string;
@@ -10,14 +10,14 @@ interface HealthStatus {
  * Health check controller for monitoring API status.
  * Publicly accessible without authentication.
  */
-@Controller('health')
+@Controller("health")
 export class HealthController {
   @Public()
   @Get()
-  @ApiSuccessMessage('API is running')
+  @ApiSuccessMessage("API is running")
   checkHealth(): HealthStatus {
     return {
-      status: 'healthy',
+      status: "healthy",
       timestamp: new Date().toISOString(),
     };
   }

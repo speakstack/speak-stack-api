@@ -3,18 +3,18 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { SUCCESS_MESSAGE_KEY } from '../decorators/api-success-message.decorator';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
+import { SUCCESS_MESSAGE_KEY } from "../decorators/api-success-message.decorator";
 
 interface SuccessResponse<T> {
   message: string;
   data: T | null;
 }
 
-const DEFAULT_SUCCESS_MESSAGE = 'Operation completed successfully';
+const DEFAULT_SUCCESS_MESSAGE = "Operation completed successfully";
 
 /**
  * Global interceptor that transforms all successful responses

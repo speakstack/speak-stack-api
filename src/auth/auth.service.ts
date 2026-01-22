@@ -1,19 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { JwtService, TokenExpiredError } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { AppException } from '../common/exceptions/app.exception';
-import { ErrorCode } from '../common/enums/error-code.enum';
-import { User } from '../user/entities/user.entity';
-import { Tokens, JwtPayload } from './types/tokens.type';
-import { SignInDto, SignUpDto } from './dto/auth.dto';
+import { Injectable, Logger } from "@nestjs/common";
+import { JwtService, TokenExpiredError } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import * as bcrypt from "bcrypt";
+import { AppException } from "../common/exceptions/app.exception";
+import { ErrorCode } from "../common/enums/error-code.enum";
+import { User } from "../user/entities/user.entity";
+import { Tokens, JwtPayload } from "./types/tokens.type";
+import { SignInDto, SignUpDto } from "./dto/auth.dto";
 
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'at-secret-key';
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "at-secret-key";
 const REFRESH_TOKEN_SECRET =
-  process.env.REFRESH_TOKEN_SECRET || 'rt-secret-key';
-const ACCESS_TOKEN_EXPIRY = '15m';
-const REFRESH_TOKEN_EXPIRY = '7d';
+  process.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
+const ACCESS_TOKEN_EXPIRY = "15m";
+const REFRESH_TOKEN_EXPIRY = "7d";
 const BCRYPT_SALT_ROUNDS = 10;
 
 /**

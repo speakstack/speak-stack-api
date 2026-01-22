@@ -1,12 +1,12 @@
-import { NestFactory, Reflector } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationError } from 'class-validator';
-import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { AppException } from './common/exceptions/app.exception';
-import { ErrorCode } from './common/enums/error-code.enum';
+import { NestFactory, Reflector } from "@nestjs/core";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { ValidationError } from "class-validator";
+import { AppModule } from "./app.module";
+import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
+import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
+import { AppException } from "./common/exceptions/app.exception";
+import { ErrorCode } from "./common/enums/error-code.enum";
 
 const DEFAULT_PORT = 8080;
 
@@ -38,27 +38,27 @@ function setupSwagger(
   app: Awaited<ReturnType<typeof NestFactory.create>>,
 ): void {
   const config = new DocumentBuilder()
-    .setTitle('Speak Stack API')
-    .setVersion('1.0')
+    .setTitle("Speak Stack API")
+    .setVersion("1.0")
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup("docs", app, document);
 }
 
 async function bootstrap(): Promise<void> {
-  const logger = new Logger('Bootstrap');
+  const logger = new Logger("Bootstrap");
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    logger: ["error", "warn", "log", "debug", "verbose"],
   });
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: process.env.CORS_ORIGIN || "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   });
-  app.setGlobalPrefix('api', {
-    exclude: ['health', 'docs', 'docs-json', 'docs-yaml'],
+  app.setGlobalPrefix("api", {
+    exclude: ["health", "docs", "docs-json", "docs-yaml"],
   });
   app.useGlobalPipes(
     new ValidationPipe({

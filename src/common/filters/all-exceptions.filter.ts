@@ -5,10 +5,10 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Response } from 'express';
-import { AppException, ErrorDetails } from '../exceptions/app.exception';
-import { ErrorCode } from '../enums/error-code.enum';
+} from "@nestjs/common";
+import { Response } from "express";
+import { AppException, ErrorDetails } from "../exceptions/app.exception";
+import { ErrorCode } from "../enums/error-code.enum";
 
 interface ErrorResponse {
   message: string;
@@ -80,19 +80,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   private extractMessage(response: string | object): string {
-    if (typeof response === 'string') {
+    if (typeof response === "string") {
       return response;
     }
-    if (typeof response === 'object' && response !== null) {
+    if (typeof response === "object" && response !== null) {
       const responseObj = response as Record<string, unknown>;
-      if (typeof responseObj.message === 'string') {
+      if (typeof responseObj.message === "string") {
         return responseObj.message;
       }
       if (Array.isArray(responseObj.message)) {
-        return String(responseObj.message[0]) || 'An error occurred';
+        return String(responseObj.message[0]) || "An error occurred";
       }
     }
-    return 'An error occurred';
+    return "An error occurred";
   }
 
   private mapHttpStatusToErrorCode(status: number): ErrorCode {
@@ -119,12 +119,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private logException(exception: unknown, status: number): void {
     if (status >= Number(HttpStatus.INTERNAL_SERVER_ERROR)) {
       this.logger.error(
-        `Unhandled exception: ${exception instanceof Error ? exception.message : 'Unknown error'}`,
+        `Unhandled exception: ${exception instanceof Error ? exception.message : "Unknown error"}`,
         exception instanceof Error ? exception.stack : undefined,
       );
     } else {
       this.logger.warn(
-        `Client error: ${exception instanceof Error ? exception.message : 'Unknown error'}`,
+        `Client error: ${exception instanceof Error ? exception.message : "Unknown error"}`,
       );
     }
   }
