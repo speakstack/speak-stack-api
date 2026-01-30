@@ -64,3 +64,26 @@ export class TokensDto {
   @ApiProperty({ description: "JWT refresh token" })
   refreshToken: string;
 }
+
+export class UserProfileDto {
+  @ApiProperty({ description: "User unique identifier" })
+  id: string;
+
+  @ApiProperty({ description: "Username" })
+  username: string;
+
+  @ApiProperty({ description: "Email address" })
+  email: string;
+
+  @ApiProperty({ description: "Display name" })
+  displayName: string;
+
+  @ApiProperty({ description: "Account status" })
+  isActive: boolean;
+
+  @ApiProperty({ description: "Account creation timestamp" })
+  createdAt: Date;
+
+  @ApiProperty({ description: "Last update timestamp" })
+  updatedAt: Date;
+}

@@ -2,19 +2,17 @@ import { Injectable, Logger } from "@nestjs/common";
 import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import * as bcrypt from "bcrypt";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { User } from "../user/entities/user.entity";
 import { Tokens, JwtPayload } from "./types/tokens.type";
 import { SignInDto, SignUpDto } from "./dto/auth.dto";
 
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "at-secret-key";
-const REFRESH_TOKEN_SECRET =
-  process.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
-const ACCESS_TOKEN_EXPIRY = "15m";
+const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || "at-secret-key";
+const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
+const ACCESS_TOKEN_EXPIRY = "1m";
 const REFRESH_TOKEN_EXPIRY = "7d";
-const BCRYPT_SALT_ROUNDS = 10;
+const BCRYPT_COST = 10;
 
 /**
  * Authentication service implementing JWT token rotation logic.
@@ -43,7 +41,7 @@ export class AuthService {
     if (!user.isActive) {
       throw new AppException(ErrorCode.USER_INACTIVE);
     }
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await Bun.password.verify(
       dto.password,
       user.passwordHash,
     );
@@ -63,7 +61,10 @@ export class AuthService {
    */
   async signUp(dto: SignUpDto): Promise<Tokens> {
     await this.validateUniqueConstraints(dto.username, dto.email);
-    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
+    const passwordHash = await Bun.password.hash(dto.password, {
+      algorithm: "bcrypt",
+      cost: BCRYPT_COST,
+    });
     const user = this.userRepository.create({
       username: dto.username,
       email: dto.email,
@@ -92,6 +93,22 @@ export class AuthService {
   }
 
   /**
+   * Retrieves current authenticated user's profile.
+   * @param userId - The user ID from JWT payload
+   * @returns User profile information
+   */
+  async getCurrentUserProfile(userId: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new AppException(ErrorCode.USER_NOT_FOUND);
+    }
+    if (!user.isActive) {
+      throw new AppException(ErrorCode.USER_INACTIVE);
+    }
+    return user;
+  }
+
+  /**
    * Refreshes token pair using valid refresh token.
    * Implements token rotation: invalidates old RT, issues new AT & RT.
    * @param refreshToken - The refresh token from request body
@@ -108,7 +125,7 @@ export class AuthService {
     if (!user.refreshTokenHash) {
       throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
     }
-    const isRefreshTokenValid = await bcrypt.compare(
+    const isRefreshTokenValid = await Bun.password.verify(
       refreshToken,
       user.refreshTokenHash,
     );
@@ -183,7 +200,10 @@ export class AuthService {
     userId: string,
     refreshToken: string,
   ): Promise<void> {
-    const hash = await bcrypt.hash(refreshToken, BCRYPT_SALT_ROUNDS);
+    const hash = await Bun.password.hash(refreshToken, {
+      algorithm: "bcrypt",
+      cost: BCRYPT_COST,
+    });
     await this.userRepository.update(userId, { refreshTokenHash: hash });
   }
 }

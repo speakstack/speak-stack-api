@@ -1,4 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -11,9 +18,12 @@ import {
   SignInDto,
   SignUpDto,
   TokensDto,
+  UserProfileDto,
 } from "./dto/auth.dto";
 import type { Tokens } from "./types/tokens.type";
-import { Public, GetCurrentUser, ApiSuccessMessage } from "../common";
+import { Public } from "../common/decorators/public.decorator";
+import { GetCurrentUser } from "../common/decorators/get-current-user.decorator";
+import { ApiSuccessMessage } from "../common/decorators/api-success-message.decorator";
 
 /**
  * Authentication controller handling sign in, sign up, sign out, and token refresh.
@@ -61,5 +71,17 @@ export class AuthController {
   @ApiSuccessMessage("Tokens refreshed successfully")
   refreshTokens(@Body() dto: RefreshTokenDto): Promise<Tokens> {
     return this.authService.refreshTokens(dto.refreshToken);
+  }
+
+  @ApiBearerAuth()
+  @Get("me")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get current authenticated user profile" })
+  @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
+  @ApiSuccessMessage("User profile retrieved successfully")
+  getCurrentUser(
+    @GetCurrentUser("sub") userId: string,
+  ): Promise<UserProfileDto> {
+    return this.authService.getCurrentUserProfile(userId);
   }
 }

@@ -8,7 +8,7 @@ import { TransformInterceptor } from "./common/interceptors/transform.intercepto
 import { AppException } from "./common/exceptions/app.exception";
 import { ErrorCode } from "./common/enums/error-code.enum";
 
-const DEFAULT_PORT = 8080;
+const DEFAULT_PORT = Bun.env.PORT || 3000;
 
 /**
  * Flattens class-validator errors into a simple map.
@@ -52,7 +52,7 @@ async function bootstrap(): Promise<void> {
     logger: ["error", "warn", "log", "debug", "verbose"],
   });
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: Bun.env.CORS_ORIGIN || "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -78,7 +78,7 @@ async function bootstrap(): Promise<void> {
   const reflector = app.get(Reflector);
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
   setupSwagger(app);
-  const port = process.env.PORT || DEFAULT_PORT;
+  const port = Bun.env.PORT || DEFAULT_PORT;
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
   logger.log(`Swagger docs: http://localhost:${port}/docs`);

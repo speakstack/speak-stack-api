@@ -1,5 +1,6 @@
 import { Controller, Get } from "@nestjs/common";
-import { Public, ApiSuccessMessage } from "../common";
+import { Public } from "../common/decorators/public.decorator";
+import { ApiSuccessMessage } from "../common/decorators/api-success-message.decorator";
 
 interface HealthStatus {
   status: string;
