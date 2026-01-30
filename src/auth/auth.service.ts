@@ -48,7 +48,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new AppException(ErrorCode.INVALID_PASSWORD);
     }
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
     this.logger.log(`User ${user.email} signed in successfully`);
     return tokens;
@@ -73,7 +73,7 @@ export class AuthService {
       isActive: true,
     });
     const savedUser = await this.userRepository.save(user);
-    const tokens = await this.generateTokens(savedUser.id, savedUser.email);
+    const tokens = await this.generateTokens(savedUser.id);
     await this.updateRefreshTokenHash(savedUser.id, tokens.refreshToken);
     this.logger.log(`User ${savedUser.email} registered successfully`);
     return tokens;
@@ -135,7 +135,7 @@ export class AuthService {
     if (!user.isActive) {
       throw new AppException(ErrorCode.USER_INACTIVE);
     }
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
     this.logger.log(`Tokens refreshed for user ${user.email}`);
     return tokens;
@@ -178,11 +178,8 @@ export class AuthService {
     });
   }
 
-  private async generateTokens(userId: string, email: string): Promise<Tokens> {
-    const payload: JwtPayload = {
-      sub: userId,
-      email,
-    };
+  private async generateTokens(userId: string): Promise<Tokens> {
+    const payload: JwtPayload = { sub: userId };
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: ACCESS_TOKEN_SECRET,
