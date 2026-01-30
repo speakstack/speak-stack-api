@@ -1,4 +1,23 @@
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: speak-stack-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Override DATABASE_HOST for Docker network
+      DATABASE_HOST: postgres
+    networks:
+      - speak-stack-network
+
   postgres:
     image: postgres:16-alpine
     container_name: speak-stack-db
@@ -8,9 +27,24 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
       POSTGRES_DB: ${DATABASE_NAME:-speak_stack}
     ports:
-      - '${DATABASE_PORT:-5432}:5432'
+      - "${DATABASE_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - speak-stack-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DATABASE_USERNAME:-postgres} -d ${DATABASE_NAME:-speak_stack}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  speak-stack-network:
+    driver: bridge
 
 volumes:
   postgres_data:

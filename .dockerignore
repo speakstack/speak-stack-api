@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.git
+.gitignore
+*.md
+.eslintrc.js
+.prettierrc
+test
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+.env*
+.cursor
