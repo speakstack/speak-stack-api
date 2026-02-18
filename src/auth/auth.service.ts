@@ -11,8 +11,8 @@ import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto"
 
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || "at-secret-key";
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
-const ACCESS_TOKEN_EXPIRY = "1m";
-const REFRESH_TOKEN_EXPIRY = "7d";
+const ACCESS_TOKEN_EXPIRY = "7d";
+const REFRESH_TOKEN_EXPIRY = "30d";
 const BCRYPT_COST = 10;
 
 /**
