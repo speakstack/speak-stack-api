@@ -7,7 +7,16 @@ import { AtGuard } from "./auth/guards/at.guard";
 import { HealthModule } from "./health/health.module";
 import { UserModule } from "./user/user.module";
 import { User } from "./user/entities/user.entity";
+import { Tag } from "./tag/entities/tag.entity";
+import { Post } from "./post/entities/post.entity";
+import { Answer } from "./answer/entities/answer.entity";
+import { ReputationHistory } from "./reputation/entities/reputation-history.entity";
+import { TagModule } from "./tag/tag.module";
+import { ReputationModule } from "./reputation/reputation.module";
+import { PostModule } from "./post/post.module";
+import { AnswerModule } from "./answer/answer.module";
 import databaseConfig from "./config/database.config";
+import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
 /**
  * Root application module.
@@ -29,7 +38,8 @@ import databaseConfig from "./config/database.config";
         username: configService.get<string>("database.username"),
         password: configService.get<string>("database.password"),
         database: configService.get<string>("database.database"),
-        entities: [User],
+        entities: [User, Tag, Post, Answer, ReputationHistory],
+        namingStrategy: new SnakeNamingStrategy(),
         synchronize: Bun.env.NODE_ENV !== "production",
         logging: Bun.env.NODE_ENV === "development",
       }),
@@ -37,6 +47,10 @@ import databaseConfig from "./config/database.config";
     UserModule,
     AuthModule,
     HealthModule,
+    TagModule,
+    ReputationModule,
+    PostModule,
+    AnswerModule,
   ],
   providers: [
     {

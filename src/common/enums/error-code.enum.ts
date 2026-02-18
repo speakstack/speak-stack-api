@@ -67,6 +67,46 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.CONFLICT,
     message: "Username is already taken",
   },
+  // Post errors
+  POST_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Post not found",
+  },
+  POST_EDIT_WINDOW_EXPIRED: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "Posts can only be edited within 24 hours of creation",
+  },
+  POST_HAS_ACCEPTED_ANSWER: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "Cannot edit a post that has an accepted answer",
+  },
+  POST_CLOSED: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "This post is closed",
+  },
+  // Answer errors
+  ANSWER_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Answer not found",
+  },
+  SELF_ANSWER_NOT_ALLOWED: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "You cannot answer your own post",
+  },
+  CANNOT_DELETE_ACCEPTED_ANSWER: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message:
+      "Cannot delete an accepted answer. The post author must unaccept it first.",
+  },
+  NO_ACCEPTED_ANSWER: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "This post has no accepted answer",
+  },
+  // Tag errors
+  TAG_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "One or more tags not found",
+  },
   // Server errors
   INTERNAL_ERROR: {
     httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -104,6 +144,26 @@ export class ErrorCode {
   static readonly USERNAME_ALREADY_EXISTS = new ErrorCode(
     "USERNAME_ALREADY_EXISTS",
   );
+  // Post errors
+  static readonly POST_NOT_FOUND = new ErrorCode("POST_NOT_FOUND");
+  static readonly POST_EDIT_WINDOW_EXPIRED = new ErrorCode(
+    "POST_EDIT_WINDOW_EXPIRED",
+  );
+  static readonly POST_HAS_ACCEPTED_ANSWER = new ErrorCode(
+    "POST_HAS_ACCEPTED_ANSWER",
+  );
+  static readonly POST_CLOSED = new ErrorCode("POST_CLOSED");
+  // Answer errors
+  static readonly ANSWER_NOT_FOUND = new ErrorCode("ANSWER_NOT_FOUND");
+  static readonly SELF_ANSWER_NOT_ALLOWED = new ErrorCode(
+    "SELF_ANSWER_NOT_ALLOWED",
+  );
+  static readonly CANNOT_DELETE_ACCEPTED_ANSWER = new ErrorCode(
+    "CANNOT_DELETE_ACCEPTED_ANSWER",
+  );
+  static readonly NO_ACCEPTED_ANSWER = new ErrorCode("NO_ACCEPTED_ANSWER");
+  // Tag errors
+  static readonly TAG_NOT_FOUND = new ErrorCode("TAG_NOT_FOUND");
   // Server errors
   static readonly INTERNAL_ERROR = new ErrorCode("INTERNAL_ERROR");
 
