@@ -18,6 +18,14 @@ interface ErrorResponse {
   };
 }
 
+const HTTP_STATUS_TO_ERROR_CODE: Record<number, ErrorCode> = {
+  [HttpStatus.BAD_REQUEST]: ErrorCode.VALIDATION_ERROR,
+  [HttpStatus.UNAUTHORIZED]: ErrorCode.UNAUTHORIZED,
+  [HttpStatus.FORBIDDEN]: ErrorCode.FORBIDDEN,
+  [HttpStatus.NOT_FOUND]: ErrorCode.RESOURCE_NOT_FOUND,
+  [HttpStatus.CONFLICT]: ErrorCode.RESOURCE_ALREADY_EXISTS,
+};
+
 /**
  * Global exception filter that catches all exceptions and formats them
  * according to the standardized error response structure.
@@ -59,7 +67,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
     const message = this.extractMessage(exceptionResponse);
-    const code = this.mapHttpStatusToErrorCode(status);
+    const code = HTTP_STATUS_TO_ERROR_CODE[status] || ErrorCode.INTERNAL_ERROR;
     return {
       message,
       error: {
@@ -95,17 +103,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     return "An error occurred";
   }
 
-  private mapHttpStatusToErrorCode(status: number): ErrorCode {
-    const statusMapping: Record<number, ErrorCode> = {
-      [HttpStatus.BAD_REQUEST]: ErrorCode.VALIDATION_ERROR,
-      [HttpStatus.UNAUTHORIZED]: ErrorCode.UNAUTHORIZED,
-      [HttpStatus.FORBIDDEN]: ErrorCode.FORBIDDEN,
-      [HttpStatus.NOT_FOUND]: ErrorCode.RESOURCE_NOT_FOUND,
-      [HttpStatus.CONFLICT]: ErrorCode.RESOURCE_ALREADY_EXISTS,
-    };
-    return statusMapping[status] || ErrorCode.INTERNAL_ERROR;
-  }
-
   private getHttpStatus(exception: unknown): number {
     if (exception instanceof AppException) {
       return exception.errorCode.httpStatus;
@@ -117,7 +114,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   private logException(exception: unknown, status: number): void {
-    if (status >= Number(HttpStatus.INTERNAL_SERVER_ERROR)) {
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
         `Unhandled exception: ${exception instanceof Error ? exception.message : "Unknown error"}`,
         exception instanceof Error ? exception.stack : undefined,

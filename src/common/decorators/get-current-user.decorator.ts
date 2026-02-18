@@ -1,15 +1,6 @@
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 import { Request } from "express";
-
-export interface JwtPayload {
-  sub: string;
-  iat?: number;
-  exp?: number;
-}
-
-export interface JwtPayloadWithRefreshToken extends JwtPayload {
-  refreshToken: string;
-}
+import { JwtPayload } from "../../auth/types/tokens.type";
 
 /**
  * Parameter decorator to extract current user from JWT payload.
@@ -27,23 +18,5 @@ export const GetCurrentUser = createParamDecorator(
       return user[data];
     }
     return user;
-  },
-);
-
-/**
- * Parameter decorator specifically for refresh token endpoints.
- * Extracts user ID and refresh token from request.
- */
-export const GetCurrentUserWithRefreshToken = createParamDecorator(
-  (_data: undefined, ctx: ExecutionContext): JwtPayloadWithRefreshToken => {
-    const request = ctx.switchToHttp().getRequest<Request>();
-    const user = request.user as JwtPayload;
-    const refreshToken = request.headers.authorization
-      ?.replace("Bearer ", "")
-      .trim();
-    return {
-      ...user,
-      refreshToken: refreshToken || "",
-    };
   },
 );

@@ -20,7 +20,6 @@ import {
   TokensDto,
   UserProfileDto,
 } from "./dto/auth.dto";
-import type { Tokens } from "./types/tokens.type";
 import { Public } from "../common/decorators/public.decorator";
 import { GetCurrentUser } from "../common/decorators/get-current-user.decorator";
 import { ApiSuccessMessage } from "../common/decorators/api-success-message.decorator";
@@ -39,7 +38,7 @@ export class AuthController {
   @ApiOperation({ summary: "Register a new user" })
   @ApiResponse({ status: HttpStatus.CREATED, type: TokensDto })
   @ApiSuccessMessage("User registered successfully")
-  signUp(@Body() dto: SignUpDto): Promise<Tokens> {
+  signUp(@Body() dto: SignUpDto): Promise<TokensDto> {
     return this.authService.signUp(dto);
   }
 
@@ -49,7 +48,7 @@ export class AuthController {
   @ApiOperation({ summary: "Sign in with username or email" })
   @ApiResponse({ status: HttpStatus.OK, type: TokensDto })
   @ApiSuccessMessage("User signed in successfully")
-  signIn(@Body() dto: SignInDto): Promise<Tokens> {
+  signIn(@Body() dto: SignInDto): Promise<TokensDto> {
     return this.authService.signIn(dto);
   }
 
@@ -69,7 +68,7 @@ export class AuthController {
   @ApiOperation({ summary: "Refresh access and refresh tokens" })
   @ApiResponse({ status: HttpStatus.OK, type: TokensDto })
   @ApiSuccessMessage("Tokens refreshed successfully")
-  refreshTokens(@Body() dto: RefreshTokenDto): Promise<Tokens> {
+  refreshTokens(@Body() dto: RefreshTokenDto): Promise<TokensDto> {
     return this.authService.refreshTokens(dto.refreshToken);
   }
 

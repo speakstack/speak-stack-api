@@ -3,6 +3,8 @@ import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 import { Observable } from "rxjs";
 import { IS_PUBLIC_KEY } from "../../common/decorators/public.decorator";
+import { AppException } from "../../common/exceptions/app.exception";
+import { ErrorCode } from "../../common/enums/error-code.enum";
 
 /**
  * Access Token Guard registered globally.
@@ -25,5 +27,12 @@ export class AtGuard extends AuthGuard("jwt") {
       return true;
     }
     return super.canActivate(ctx);
+  }
+
+  handleRequest<T>(err: Error | null, user: T): T {
+    if (err || !user) {
+      throw new AppException(ErrorCode.UNAUTHORIZED);
+    }
+    return user;
   }
 }

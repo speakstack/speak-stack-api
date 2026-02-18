@@ -8,7 +8,7 @@ import { TransformInterceptor } from "./common/interceptors/transform.intercepto
 import { AppException } from "./common/exceptions/app.exception";
 import { ErrorCode } from "./common/enums/error-code.enum";
 
-const DEFAULT_PORT = Bun.env.PORT || 3000;
+const DEFAULT_PORT = Bun.env.PORT || 8080;
 
 /**
  * Flattens class-validator errors into a simple map.
@@ -70,7 +70,7 @@ async function bootstrap(): Promise<void> {
       },
       exceptionFactory: (errors: ValidationError[]) => {
         const flattenedErrors = flattenValidationErrors(errors);
-        throw new AppException(ErrorCode.VALIDATION_ERROR, flattenedErrors);
+        return new AppException(ErrorCode.VALIDATION_ERROR, flattenedErrors);
       },
     }),
   );
