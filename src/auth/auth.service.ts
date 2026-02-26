@@ -51,7 +51,7 @@ export class AuthService {
     }
     const tokens = await this.generateTokens(user.id);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
-    this.logger.log(`User ${user.email} signed in successfully`);
+    this.logger.log(`User ${user.username} signed in successfully`);
     return tokens;
   }
 
