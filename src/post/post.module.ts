@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Post } from "./entities/post.entity";
+import { Answer } from "../answer/entities/answer.entity";
 import { PostController } from "./post.controller";
 import { PostService } from "./post.service";
 import { UserModule } from "../user/user.module";
@@ -9,7 +10,7 @@ import { ReputationModule } from "../reputation/reputation.module";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Post]),
+    TypeOrmModule.forFeature([Post, Answer]),
     UserModule,
     TagModule,
     ReputationModule,
