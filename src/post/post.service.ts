@@ -1,7 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, In, Repository } from "typeorm";
+import { DataSource, EntityManager, In, Repository } from "typeorm";
 import { Post, PostStatus } from "./entities/post.entity";
+import { Answer } from "../answer/entities/answer.entity";
 import { Tag } from "../tag/entities/tag.entity";
 import { User } from "../user/entities/user.entity";
 import { ReputationHistory } from "../reputation/entities/reputation-history.entity";
@@ -14,8 +15,10 @@ import {
   PostDetailResponseDto,
   PostListResponseDto,
   PostResponseDto,
+  PostSort,
   UpdatePostDto,
 } from "./dto/post.dto";
+import { buildPagination } from "../common/dto/pagination.dto";
 
 const CONTENT_TRUNCATE_LENGTH = 200;
 const EDIT_WINDOW_HOURS = 24;
@@ -29,6 +32,8 @@ export class PostService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    @InjectRepository(Answer)
+    private readonly answerRepository: Repository<Answer>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(User)
@@ -123,9 +128,9 @@ export class PostService {
       );
     }
 
-    if (query.sort === "top") {
+    if (query.sort === PostSort.TOP) {
       qb.orderBy("post.score", "DESC");
-    } else if (query.sort === "unanswered") {
+    } else if (query.sort === PostSort.UNANSWERED) {
       qb.andWhere("post.answerCount = :answerCount", { answerCount: 0 });
       qb.orderBy("post.createdAt", "DESC");
     } else {
@@ -136,24 +141,13 @@ export class PostService {
 
     return {
       posts: posts.map((p) => this.toPostResponse(p, true)),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      pagination: buildPagination(page, limit, total),
     };
   }
 
   async getPost(id: string): Promise<PostDetailResponseDto> {
     const post = await this.findPostWithRelations(id);
-    if (!post) {
-      throw new AppException(ErrorCode.POST_NOT_FOUND);
-    }
-
-    // Fire-and-forget view count increment
     this.postRepository.increment({ id }, "viewCount", 1).catch(() => {});
-
     return this.toPostDetailResponse(post);
   }
 
@@ -163,9 +157,6 @@ export class PostService {
     dto: UpdatePostDto,
   ): Promise<PostDetailResponseDto> {
     const post = await this.findPostWithRelations(id);
-    if (!post) {
-      throw new AppException(ErrorCode.POST_NOT_FOUND);
-    }
     if (post.authorId !== userId) {
       throw new AppException(ErrorCode.FORBIDDEN);
     }
@@ -224,10 +215,6 @@ export class PostService {
 
   async deletePost(userId: string, id: string): Promise<void> {
     const post = await this.findPostWithRelations(id);
-    if (!post) {
-      throw new AppException(ErrorCode.POST_NOT_FOUND);
-    }
-
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (post.authorId !== userId && user?.role !== "admin") {
       throw new AppException(ErrorCode.FORBIDDEN);
@@ -239,11 +226,40 @@ export class PostService {
         deletedAt: new Date(),
       });
 
-      for (const tag of post.tags) {
-        await manager.decrement(Tag, { id: tag.id }, "postsCount", 1);
+      const authorCountMap = await this.getAnswerAuthorCounts(manager, id);
+      if (authorCountMap.size > 0) {
+        await manager
+          .createQueryBuilder()
+          .update(Answer)
+          .set({ isDeleted: true, deletedAt: () => "NOW()" })
+          .where("postId = :postId AND isDeleted = false", { postId: id })
+          .execute();
+        for (const [authorId, count] of authorCountMap) {
+          await manager
+            .createQueryBuilder()
+            .update(User)
+            .set({ answersCount: () => `GREATEST(0, answers_count - ${count})` })
+            .where("id = :id", { id: authorId })
+            .execute();
+        }
       }
 
-      await manager.decrement(User, { id: post.authorId }, "postsCount", 1);
+      const tagIds = post.tags.map((t) => t.id);
+      if (tagIds.length > 0) {
+        await manager
+          .createQueryBuilder()
+          .update(Tag)
+          .set({ postsCount: () => "GREATEST(0, posts_count - 1)" })
+          .where("id IN (:...tagIds)", { tagIds })
+          .execute();
+      }
+
+      await manager
+        .createQueryBuilder()
+        .update(User)
+        .set({ postsCount: () => "GREATEST(0, posts_count - 1)" })
+        .where("id = :id", { id: post.authorId })
+        .execute();
 
       await manager
         .createQueryBuilder()
@@ -264,6 +280,21 @@ export class PostService {
     });
 
     this.logger.log(`Post ${id} deleted by user ${userId}`);
+  }
+
+  private async getAnswerAuthorCounts(
+    manager: EntityManager,
+    postId: string,
+  ): Promise<Map<string, number>> {
+    const rows: { authorId: string; count: string }[] = await manager
+      .createQueryBuilder()
+      .select("answer.authorId", "authorId")
+      .addSelect("COUNT(*)", "count")
+      .from(Answer, "answer")
+      .where("answer.postId = :postId AND answer.isDeleted = false", { postId })
+      .groupBy("answer.authorId")
+      .getRawMany();
+    return new Map(rows.map((r) => [r.authorId, Number(r.count)]));
   }
 
   async findPostWithRelations(id: string): Promise<Post> {
@@ -301,6 +332,7 @@ export class PostService {
         slug: t.slug,
         color: t.color,
       })),
+      score: post.score,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
       createdAt: post.createdAt,
@@ -330,6 +362,7 @@ export class PostService {
         color: t.color,
       })),
       acceptedAnswerId: post.acceptedAnswerId,
+      score: post.score,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
       createdAt: post.createdAt,

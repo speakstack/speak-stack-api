@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { PaginationDto } from "../../common/dto/pagination.dto";
 
 export class CreateAnswerDto {
   @ApiProperty({ description: "Answer content (minimum 10 characters)" })
@@ -17,14 +25,32 @@ export class UpdateAnswerDto {
   content: string;
 }
 
+export enum AnswerSort {
+  VOTES = "votes",
+  NEW = "new",
+}
+
 export class ListAnswersQueryDto {
+  @ApiPropertyOptional({ description: "Page number", default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @ApiPropertyOptional({ description: "Items per page", default: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 20;
+
   @ApiPropertyOptional({
     description: "Sort order: votes (default) or new",
-    default: "votes",
+    default: AnswerSort.VOTES,
+    enum: AnswerSort,
   })
   @IsOptional()
-  @IsString()
-  sort?: string = "votes";
+  @IsEnum(AnswerSort, {
+    message: "Sort must be one of: votes, new",
+  })
+  sort?: AnswerSort = AnswerSort.VOTES;
 }
 
 export class AnswerAuthorDto {
@@ -42,4 +68,9 @@ export class AnswerResponseDto {
   @ApiProperty() score: number;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
+}
+
+export class AnswerListResponseDto {
+  @ApiProperty({ type: [AnswerResponseDto] }) answers: AnswerResponseDto[];
+  @ApiProperty() pagination: PaginationDto;
 }

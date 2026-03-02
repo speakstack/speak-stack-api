@@ -18,6 +18,7 @@ import {
 } from "@nestjs/swagger";
 import { AnswerService } from "../answer.service";
 import {
+  AnswerListResponseDto,
   AnswerResponseDto,
   CreateAnswerDto,
   ListAnswersQueryDto,
@@ -50,12 +51,12 @@ export class PostAnswersController {
   @Get("answers")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "List answers for a post" })
-  @ApiResponse({ status: HttpStatus.OK, type: [AnswerResponseDto] })
+  @ApiResponse({ status: HttpStatus.OK, type: AnswerListResponseDto })
   @ApiSuccessMessage("Answers retrieved successfully")
   listAnswers(
     @Param("postId", ParseUUIDPipe) postId: string,
     @Query() query: ListAnswersQueryDto,
-  ): Promise<AnswerResponseDto[]> {
+  ): Promise<AnswerListResponseDto> {
     return this.answerService.listAnswers(postId, query);
   }
 

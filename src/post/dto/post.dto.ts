@@ -12,7 +12,14 @@ import {
   MinLength,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { PostType } from "../entities/post.entity";
+import { PostStatus, PostType } from "../entities/post.entity";
+import { PaginationDto } from "../../common/dto/pagination.dto";
+
+export enum PostSort {
+  NEW = "new",
+  TOP = "top",
+  UNANSWERED = "unanswered",
+}
 
 export class CreatePostDto {
   @ApiProperty({
@@ -104,10 +111,12 @@ export class ListPostsQueryDto {
   })
   type?: PostType;
 
-  @ApiPropertyOptional({ description: "Filter by post status" })
+  @ApiPropertyOptional({ description: "Filter by post status", enum: PostStatus })
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(PostStatus, {
+    message: "Status must be one of: open, answered, closed",
+  })
+  status?: PostStatus;
 
   @ApiPropertyOptional({
     description: "Comma-separated tag slugs",
@@ -128,11 +137,14 @@ export class ListPostsQueryDto {
 
   @ApiPropertyOptional({
     description: "Sort order: new, top, unanswered",
-    default: "new",
+    default: PostSort.NEW,
+    enum: PostSort,
   })
   @IsOptional()
-  @IsString()
-  sort?: string = "new";
+  @IsEnum(PostSort, {
+    message: "Sort must be one of: new, top, unanswered",
+  })
+  sort?: PostSort = PostSort.NEW;
 }
 
 export class PostAuthorDto {
@@ -162,6 +174,7 @@ export class PostResponseDto {
   @ApiProperty() content: string;
   @ApiProperty() author: PostAuthorDto;
   @ApiProperty({ type: [PostTagDto] }) tags: PostTagDto[];
+  @ApiProperty() score: number;
   @ApiProperty() answerCount: number;
   @ApiProperty() viewCount: number;
   @ApiProperty() createdAt: Date;
@@ -177,17 +190,11 @@ export class PostDetailResponseDto {
   @ApiProperty() author: PostAuthorDetailDto;
   @ApiProperty({ type: [PostTagDto] }) tags: PostTagDto[];
   @ApiProperty({ nullable: true }) acceptedAnswerId: string | null;
+  @ApiProperty() score: number;
   @ApiProperty() answerCount: number;
   @ApiProperty() viewCount: number;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
-}
-
-export class PaginationDto {
-  @ApiProperty() page: number;
-  @ApiProperty() limit: number;
-  @ApiProperty() total: number;
-  @ApiProperty() totalPages: number;
 }
 
 export class PostListResponseDto {

@@ -51,8 +51,24 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     logger: ["error", "warn", "log", "debug", "verbose"],
   });
+  const corsOrigin = Bun.env.CORS_ORIGIN || "http://localhost:3000";
+  const isWildcard = corsOrigin.trim() === "*";
+  const allowedOrigins = isWildcard
+    ? []
+    : corsOrigin.split(",").map((o) => o.trim());
   app.enableCors({
-    origin: Bun.env.CORS_ORIGIN || "*",
+    origin: isWildcard
+      ? true
+      : (
+          origin: string | undefined,
+          callback: (err: Error | null, allow?: boolean) => void,
+        ) => {
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error("Not allowed by CORS"));
+          }
+        },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

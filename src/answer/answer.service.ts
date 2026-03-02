@@ -9,13 +9,16 @@ import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { sanitizeContent } from "../common/utils/sanitize";
 import {
+  AnswerListResponseDto,
   AnswerResponseDto,
+  AnswerSort,
   CreateAnswerDto,
   ListAnswersQueryDto,
   UpdateAnswerDto,
 } from "./dto/answer.dto";
 import { PostDetailResponseDto } from "../post/dto/post.dto";
 import { PostService } from "../post/post.service";
+import { buildPagination } from "../common/dto/pagination.dto";
 
 const ANSWER_CREATED_REP = 10;
 const ANSWER_ACCEPTED_REP = 15;
@@ -99,29 +102,40 @@ export class AnswerService {
   async listAnswers(
     postId: string,
     query: ListAnswersQueryDto,
-  ): Promise<AnswerResponseDto[]> {
+  ): Promise<AnswerListResponseDto> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId, isDeleted: false },
+    });
+    if (!post) {
+      throw new AppException(ErrorCode.POST_NOT_FOUND);
+    }
+    const page = Math.max(1, query.page || 1);
+    const limit = Math.min(50, Math.max(1, query.limit || 20));
+    const offset = (page - 1) * limit;
     const qb = this.answerRepository
       .createQueryBuilder("answer")
       .leftJoinAndSelect("answer.author", "author")
       .where("answer.postId = :postId", { postId })
       .andWhere("answer.isDeleted = :isDeleted", { isDeleted: false });
-
-    // Accepted answer always first
-    if (query.sort === "new") {
+    if (query.sort === AnswerSort.NEW) {
       qb.orderBy("answer.isAccepted", "DESC").addOrderBy(
         "answer.createdAt",
         "DESC",
       );
     } else {
-      // Default: votes
       qb.orderBy("answer.isAccepted", "DESC").addOrderBy(
         "answer.score",
         "DESC",
       );
     }
-
-    const answers = await qb.getMany();
-    return answers.map((a) => this.toAnswerResponse(a));
+    const [answers, total] = await qb
+      .skip(offset)
+      .take(limit)
+      .getManyAndCount();
+    return {
+      answers: answers.map((a) => this.toAnswerResponse(a)),
+      pagination: buildPagination(page, limit, total),
+    };
   }
 
   async updateAnswer(
@@ -136,12 +150,20 @@ export class AnswerService {
     if (!answer) {
       throw new AppException(ErrorCode.ANSWER_NOT_FOUND);
     }
+    const post = await this.postRepository.findOne({
+      where: { id: answer.postId, isDeleted: false },
+    });
+    if (!post) {
+      throw new AppException(ErrorCode.POST_NOT_FOUND);
+    }
     if (answer.authorId !== userId) {
       throw new AppException(ErrorCode.FORBIDDEN);
     }
-
     answer.content = sanitizeContent(dto.content);
     await this.answerRepository.save(answer);
+    await this.postRepository.update(answer.postId, {
+      lastActivityAt: new Date(),
+    });
 
     this.logger.log(`Answer ${id} updated by user ${userId}`);
     return this.toAnswerResponse(answer);
@@ -154,16 +176,19 @@ export class AnswerService {
     if (!answer) {
       throw new AppException(ErrorCode.ANSWER_NOT_FOUND);
     }
-
+    const post = await this.postRepository.findOne({
+      where: { id: answer.postId, isDeleted: false },
+    });
+    if (!post) {
+      throw new AppException(ErrorCode.POST_NOT_FOUND);
+    }
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (answer.authorId !== userId && user?.role !== "admin") {
       throw new AppException(ErrorCode.FORBIDDEN);
     }
-
     if (answer.isAccepted) {
       throw new AppException(ErrorCode.CANNOT_DELETE_ACCEPTED_ANSWER);
     }
-
     await this.dataSource.transaction(async (manager) => {
       await manager.update(Answer, id, {
         isDeleted: true,
@@ -176,8 +201,23 @@ export class AnswerService {
         "answersCount",
         1,
       );
+      await manager
+        .createQueryBuilder()
+        .update(User)
+        .set({
+          reputation: () =>
+            `GREATEST(0, reputation - ${ANSWER_CREATED_REP})`,
+        })
+        .where("id = :id", { id: answer.authorId })
+        .execute();
+      await manager.save(ReputationHistory, {
+        userId: answer.authorId,
+        event: "answer_deleted",
+        change: -ANSWER_CREATED_REP,
+        relatedPostId: answer.postId,
+        relatedAnswerId: id,
+      });
     });
-
     this.logger.log(`Answer ${id} deleted by user ${userId}`);
   }
 
@@ -202,10 +242,12 @@ export class AnswerService {
     if (!answer || answer.postId !== postId) {
       throw new AppException(ErrorCode.ANSWER_NOT_FOUND);
     }
+    if (post.acceptedAnswerId === answerId) {
+      return this.postService.getPost(postId);
+    }
 
     await this.dataSource.transaction(async (manager) => {
-      // Unaccept old answer if different
-      if (post.acceptedAnswerId && post.acceptedAnswerId !== answerId) {
+      if (post.acceptedAnswerId) {
         const oldAnswer = await manager.findOne(Answer, {
           where: { id: post.acceptedAnswerId },
         });
@@ -236,7 +278,6 @@ export class AnswerService {
         }
       }
 
-      // Accept new answer
       await manager.update(Answer, answerId, { isAccepted: true });
       await manager.update(Post, postId, {
         acceptedAnswerId: answerId,
