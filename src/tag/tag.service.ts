@@ -23,11 +23,13 @@ export class TagService {
     private readonly answerRepository: Repository<Answer>,
   ) {}
 
-  async findAll(language?: string): Promise<Tag[]> {
+  async findAll(language?: string, scope?: string): Promise<Tag[]> {
     const qb = this.tagRepository
       .createQueryBuilder("tag")
       .leftJoinAndSelect("tag.language", "language");
-    if (language) {
+    if (scope === "global") {
+      qb.andWhere("tag.languageId IS NULL");
+    } else if (language) {
       qb.andWhere(
         "(language.code = :language OR tag.languageId IS NULL)",
         { language },
