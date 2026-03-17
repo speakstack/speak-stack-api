@@ -35,7 +35,7 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ default: 1 })
+  @Column({ default: 0 })
   reputation: number;
 
   @Column({ default: 0 })

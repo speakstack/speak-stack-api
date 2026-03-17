@@ -54,6 +54,9 @@ export class Answer {
   verifiedAt: Date | null;
 
   @Column({ default: false })
+  verifierIsNative: boolean;
+
+  @Column({ default: false })
   isAiChecked: boolean;
 
   @Column({ default: 0 })

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speak Stack API – Test UI</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; max-width: 900px; }
+    h1 { margin-top: 0; font-size: 1.25rem; }
+    h2 { font-size: 1.1rem; margin: 0 0 0.5rem 0; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
+    h3 { font-size: 0.95rem; margin: 1rem 0 0.35rem 0; }
+    section { margin: 1.5rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+    section > div:first-of-type { margin-bottom: 0.5rem; }
+    label { display: inline-flex; align-items: center; gap: 0.35rem; }
+    input[type="text"], input[type="number"], input[type="password"], select, textarea { padding: 0.35rem 0.5rem; border: 1px solid #ccc; border-radius: 4px; margin: 0 0.25rem 0.25rem 0; }
+    button { padding: 0.4rem 0.75rem; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; margin-bottom: 0.5rem; }
+    .output-box { margin-top: 0.5rem; padding: 0.75rem; border: 1px solid #eee; border-radius: 4px; background: #fafafa; min-height: 2rem; }
+    .output-box pre { margin: 0; font-size: 0.85rem; white-space: pre-wrap; word-break: break-word; }
+    .toggle-row { margin-bottom: 0.75rem; }
+  </style>
+</head>
+<body>
+  <h1>Speak Stack API – Test</h1>
+
+  <section>
+    <h2>Config</h2>
+    <div class="row">
+      <label>API base: <input type="text" id="baseUrl" value="http://localhost:8080/api" size="42" /></label>
+    </div>
+    <div class="toggle-row">
+      <label><input type="checkbox" id="showFullRes" /> Show full response (raw JSON)</label>
+    </div>
+  </section>
+
+  <section id="authSection">
+    <h2>Auth</h2>
+    <div id="authGuest">
+      <h3>Sign up</h3>
+      <div class="row">
+        <input id="suUsername" placeholder="username" />
+        <input id="suEmail" placeholder="email" />
+        <input id="suDisplayName" placeholder="displayName" />
+        <input type="password" id="suPassword" placeholder="password" />
+        <button type="button" id="btnSignUp">Sign up</button>
+      </div>
+      <h3>Sign in</h3>
+      <div class="row">
+        <input id="siIdentifier" placeholder="username or email" />
+        <input type="password" id="siPassword" placeholder="password" />
+        <button type="button" id="btnSignIn">Sign in</button>
+      </div>
+    </div>
+    <div id="authUser" style="display: none;">
+      <div class="row">
+        <button type="button" id="btnMe">Me</button>
+        <button type="button" id="btnRefresh">Refresh</button>
+        <button type="button" id="btnSignOut">Sign out</button>
+      </div>
+      <div class="output-box"><pre id="meOutput"></pre></div>
+    </div>
+    <div class="output-box"><pre id="authLog"></pre></div>
+  </section>
+
+  <section>
+    <h2>Languages</h2>
+    <div class="row">
+      <button type="button" id="btnListLanguages">List languages</button>
+    </div>
+    <div class="output-box"><pre id="languagesOutput"></pre></div>
+  </section>
+
+  <section>
+    <h2>Tags</h2>
+    <div class="row">
+      <button type="button" id="btnListTags">List tags</button>
+      <label>language <input type="text" id="tagsLanguage" placeholder="e.g. ja" size="6" /></label>
+    </div>
+    <div class="output-box"><pre id="tagsOutput"></pre></div>
+  </section>
+
+  <section>
+    <h2>User Languages</h2>
+    <h3>List by username (public)</h3>
+    <div class="row">
+      <input type="text" id="userLangsUsername" placeholder="username" size="20" />
+      <button type="button" id="btnListUserLangs">List</button>
+    </div>
+    <div class="output-box"><pre id="userLangsListOutput"></pre></div>
+
+    <h3>Add language relation (auth)</h3>
+    <div class="row">
+      <input type="text" id="userLangCreateLangId" placeholder="languageId (UUID)" size="40" />
+      <select id="userLangCreateRelation"><option value="native">native</option><option value="learning">learning</option><option value="can_help">can_help</option></select>
+      <select id="userLangCreateProficiency"><option value="">(none)</option><option value="beginner">beginner</option><option value="intermediate">intermediate</option><option value="advanced">advanced</option><option value="fluent">fluent</option><option value="native">native</option></select>
+      <button type="button" id="btnCreateUserLang">Add</button>
+    </div>
+    <div class="output-box"><pre id="userLangsCreateOutput"></pre></div>
+
+    <h3>Update proficiency (auth)</h3>
+    <div class="row">
+      <input type="text" id="userLangUpdateId" placeholder="userLanguage UUID" size="40" />
+      <select id="userLangUpdateProficiency"><option value="">(none)</option><option value="beginner">beginner</option><option value="intermediate">intermediate</option><option value="advanced">advanced</option><option value="fluent">fluent</option><option value="native">native</option></select>
+      <button type="button" id="btnUpdateUserLang">Update</button>
+    </div>
+    <div class="output-box"><pre id="userLangsUpdateOutput"></pre></div>
+
+    <h3>Delete (auth)</h3>
+    <div class="row">
+      <input type="text" id="userLangDeleteId" placeholder="userLanguage UUID" size="40" />
+      <button type="button" id="btnDeleteUserLang">Delete</button>
+    </div>
+    <div class="output-box"><pre id="userLangsDeleteOutput"></pre></div>
+  </section>
+
+  <section>
+    <h2>Posts</h2>
+    <div class="row">
+      <button type="button" id="btnListPosts">List posts</button>
+      <label>page <input type="number" id="postsPage" value="1" min="1" style="width: 3rem" /></label>
+      <label>limit <input type="number" id="postsLimit" value="10" min="1" style="width: 3rem" /></label>
+      <label>type <select id="postsType"><option value="">any</option><option value="question">question</option><option value="discussion">discussion</option><option value="resource">resource</option><option value="practice">practice</option><option value="how_do_you_say">how_do_you_say</option><option value="does_this_sound_natural">does_this_sound_natural</option><option value="please_correct">please_correct</option><option value="whats_the_difference">whats_the_difference</option></select></label>
+      <label>sort <select id="postsSort"><option value="new">new</option><option value="top">top</option><option value="unanswered">unanswered</option></select></label>
+      <label>language <input type="text" id="postsLanguage" placeholder="e.g. ja" size="6" /></label>
+    </div>
+    <div class="output-box"><pre id="postsListOutput"></pre></div>
+
+    <h3>Get post by ID</h3>
+    <div class="row">
+      <input type="text" id="getPostId" placeholder="post UUID" size="40" />
+      <button type="button" id="btnGetPost">Get post</button>
+    </div>
+    <div class="output-box"><pre id="postDetailOutput"></pre></div>
+
+    <h3>Create post (auth)</h3>
+    <div class="row" style="flex-direction: column; align-items: flex-start;">
+      <div class="row">
+        <select id="createPostType"><option value="question">question</option><option value="discussion">discussion</option><option value="resource">resource</option><option value="practice">practice</option><option value="how_do_you_say">how_do_you_say</option><option value="does_this_sound_natural">does_this_sound_natural</option><option value="please_correct">please_correct</option><option value="whats_the_difference">whats_the_difference</option></select>
+        <input id="createPostTitle" placeholder="title (min 10)" size="40" />
+      </div>
+      <div class="row">
+        <input id="createPostTargetLanguageId" placeholder="targetLanguageId (UUID)" size="40" />
+      </div>
+      <textarea id="createPostContent" placeholder="content (min 20)" rows="3" cols="60" style="width: 100%; max-width: 500px;"></textarea>
+      <div class="row">
+        <input id="createPostTagIds" placeholder="tagIds comma UUIDs (e.g. from list)" size="55" />
+        <button type="button" id="btnCreatePost">Create post</button>
+      </div>
+    </div>
+    <div class="output-box"><pre id="createPostOutput"></pre></div>
+
+    <h3>Update post (auth)</h3>
+    <div class="row">
+      <input type="text" id="updatePostId" placeholder="post UUID" size="36" />
+      <input id="updatePostTitle" placeholder="title" size="28" />
+      <textarea id="updatePostContent" placeholder="content" rows="1" cols="25"></textarea>
+      <input id="updatePostTagIds" placeholder="tagIds comma" size="30" />
+      <button type="button" id="btnUpdatePost">Update post</button>
+    </div>
+    <div class="output-box"><pre id="updatePostOutput"></pre></div>
+
+    <h3>Delete post (auth)</h3>
+    <div class="row">
+      <input type="text" id="deletePostId" placeholder="post UUID" size="40" />
+      <button type="button" id="btnDeletePost">Delete post</button>
+    </div>
+    <div class="output-box"><pre id="deletePostOutput"></pre></div>
+  </section>
+
+  <section>
+    <h2>Answers (by post)</h2>
+    <div class="row">
+      <input type="text" id="answersPostId" placeholder="post UUID" size="40" />
+      <select id="answersSort"><option value="votes">votes</option><option value="new">new</option></select>
+      <button type="button" id="btnListAnswers">List answers</button>
+    </div>
+    <div class="output-box"><pre id="answersListOutput"></pre></div>
+
+    <h3>Create answer (auth)</h3>
+    <div class="row" style="flex-direction: column; align-items: flex-start;">
+      <div class="row">
+        <input type="text" id="createAnswerPostId" placeholder="post UUID" size="40" />
+        <button type="button" id="btnCreateAnswer">Create answer</button>
+      </div>
+      <textarea id="createAnswerContent" placeholder="content (min 10)" rows="2" cols="60" style="width: 100%; max-width: 500px;"></textarea>
+    </div>
+    <div class="output-box"><pre id="createAnswerOutput"></pre></div>
+
+    <h3>Update answer (auth)</h3>
+    <div class="row">
+      <input type="text" id="updateAnswerId" placeholder="answer UUID" size="36" />
+      <textarea id="createAnswerContentUpdate" placeholder="content" rows="1" cols="35"></textarea>
+      <button type="button" id="btnUpdateAnswer">Update answer</button>
+    </div>
+    <div class="output-box"><pre id="updateAnswerOutput"></pre></div>
+
+    <h3>Delete answer (auth)</h3>
+    <div class="row">
+      <input type="text" id="deleteAnswerId" placeholder="answer UUID" size="40" />
+      <button type="button" id="btnDeleteAnswer">Delete answer</button>
+    </div>
+    <div class="output-box"><pre id="deleteAnswerOutput"></pre></div>
+
+    <h3>Accept / Unaccept (auth, post owner)</h3>
+    <div class="row">
+      <input type="text" id="acceptPostId" placeholder="post UUID" size="30" />
+      <input type="text" id="acceptAnswerId" placeholder="answer UUID" size="30" />
+      <button type="button" id="btnAcceptAnswer">Accept answer</button>
+      <button type="button" id="btnUnacceptAnswer">Unaccept</button>
+    </div>
+    <div class="output-box"><pre id="acceptOutput"></pre></div>
+  </section>
+
+  <script>
+    (function () {
+      const BASE_KEY = 'speakstack_test';
+      const OUTPUT_IDS = ['postsListOutput', 'postDetailOutput', 'createPostOutput', 'updatePostOutput', 'deletePostOutput', 'answersListOutput', 'createAnswerOutput', 'updateAnswerOutput', 'deleteAnswerOutput', 'acceptOutput', 'meOutput', 'languagesOutput', 'tagsOutput', 'userLangsListOutput', 'userLangsCreateOutput', 'userLangsUpdateOutput', 'userLangsDeleteOutput'];
+      let accessToken = localStorage.getItem(BASE_KEY + '_at');
+      let refreshToken = localStorage.getItem(BASE_KEY + '_rt');
+      const lastOutputs = {};
+
+      function getBaseUrl() {
+        return document.getElementById('baseUrl').value.replace(/\/$/, '');
+      }
+
+      function setTokens(at, rt) {
+        accessToken = at;
+        refreshToken = rt;
+        if (at) localStorage.setItem(BASE_KEY + '_at', at);
+        else localStorage.removeItem(BASE_KEY + '_at');
+        if (rt) localStorage.setItem(BASE_KEY + '_rt', rt);
+        else localStorage.removeItem(BASE_KEY + '_rt');
+        document.getElementById('authGuest').style.display = accessToken ? 'none' : 'block';
+        document.getElementById('authUser').style.display = accessToken ? 'block' : 'none';
+      }
+
+      function authLog(msg) {
+        const el = document.getElementById('authLog');
+        el.textContent = (el.textContent || '') + msg + '\n';
+      }
+
+      async function request(method, path, body, useAuth = true) {
+        const url = path.startsWith('http') ? path : getBaseUrl() + path;
+        const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        if (useAuth && accessToken) opts.headers['Authorization'] = 'Bearer ' + accessToken;
+        if (body != null) opts.body = JSON.stringify(body);
+        const res = await fetch(url, opts);
+        const text = await res.text();
+        let data = null;
+        try { data = JSON.parse(text); } catch (_) {}
+        if (!res.ok) {
+          const err = data && (data.message || data.error) ? JSON.stringify(data) : text;
+          throw new Error(err || res.statusText);
+        }
+        return data;
+      }
+
+      async function requestWithRefresh(method, path, body, useAuth) {
+        try {
+          return await request(method, path, body, useAuth);
+        } catch (e) {
+          if (useAuth && accessToken && refreshToken && (e.message.includes('401') || e.message.includes('Unauthorized') || e.message.includes('jwt'))) {
+            try {
+              const res = await request('POST', '/auth/refresh', { refreshToken }, false);
+              const tokens = unwrap(res);
+              setTokens(tokens.accessToken, tokens.refreshToken);
+              return await request(method, path, body, true);
+            } catch (_) {}
+          }
+          throw e;
+        }
+      }
+
+      function unwrap(res) {
+        return res && typeof res.data !== 'undefined' ? res.data : res;
+      }
+
+      function setOutput(id, raw, ui) {
+        lastOutputs[id] = { raw, ui: ui != null ? ui : (typeof raw === 'string' ? raw : JSON.stringify(raw, null, 2)) };
+        renderOutput(id);
+      }
+
+      function renderOutput(id) {
+        const o = lastOutputs[id];
+        const pre = document.getElementById(id);
+        if (!pre) return;
+        if (!o) { pre.textContent = ''; return; }
+        const showFull = document.getElementById('showFullRes').checked;
+        pre.textContent = showFull ? (typeof o.raw === 'string' ? o.raw : JSON.stringify(o.raw, null, 2)) : o.ui;
+      }
+
+      function renderAll() {
+        OUTPUT_IDS.forEach(renderOutput);
+      }
+
+      document.getElementById('showFullRes').addEventListener('change', renderAll);
+
+      function langLabel(tl) {
+        return tl ? (tl.code + ' (' + tl.name + ')') : '—';
+      }
+
+      function uiPostsList(res) {
+        const d = unwrap(res);
+        if (!d || !d.posts) return String(res);
+        const p = d.pagination || {};
+        let s = 'Total ' + (p.total ?? d.posts.length) + ' (page ' + (p.page ?? 1) + '/' + (p.totalPages ?? 1) + ')\n\n';
+        (d.posts || []).slice(0, 15).forEach(function (post, i) {
+          s += (i + 1) + '. [' + (post.type || '') + '] ' + (post.title || '') + '\n    id: ' + post.id + ' | author: ' + (post.author && post.author.username) + ' | lang: ' + langLabel(post.targetLanguage) + ' | answers: ' + (post.answerCount ?? 0) + '\n';
+        });
+        if ((d.posts || []).length > 15) s += '\n... and ' + (d.posts.length - 15) + ' more';
+        return s;
+      }
+
+      function uiPostDetail(res) {
+        const d = unwrap(res);
+        if (!d || !d.id) return String(res);
+        return 'Title: ' + d.title + '\nType: ' + d.type + ' | Status: ' + d.status + ' | Lang: ' + langLabel(d.targetLanguage) + '\nAuthor: ' + (d.author && d.author.displayName) + ' (@' + (d.author && d.author.username) + ')\nAnswers: ' + (d.answerCount ?? 0) + ' | Accepted: ' + (d.acceptedAnswerId || '—') + '\n\n' + (d.content || '').slice(0, 300) + (d.content && d.content.length > 300 ? '...' : '');
+      }
+
+      function uiPostOne(res) {
+        const d = unwrap(res);
+        if (!d || !d.id) return String(res);
+        return 'Post id: ' + d.id + '\nTitle: ' + d.title + '\nType: ' + d.type + ' | Status: ' + d.status + ' | Lang: ' + langLabel(d.targetLanguage);
+      }
+
+      function uiMe(res) {
+        const d = unwrap(res);
+        if (!d || !d.id) return String(res);
+        return d.displayName + ' (@' + d.username + ')\n' + d.email + ' | id: ' + d.id;
+      }
+
+      function uiAnswersList(res) {
+        const list = Array.isArray(res) ? res : (unwrap(res) || []);
+        if (!Array.isArray(list)) return String(res);
+        let s = list.length + ' answer(s)\n\n';
+        list.forEach(function (a, i) {
+          s += (i + 1) + '. ' + (a.isAccepted ? '[accepted] ' : '') + (a.content || '').slice(0, 60) + (a.content && a.content.length > 60 ? '...' : '') + '\n    id: ' + a.id + ' | ' + (a.author && a.author.username) + '\n';
+        });
+        return s;
+      }
+
+      function uiAnswerOne(res) {
+        const d = unwrap(res);
+        if (!d || !d.id) return String(res);
+        return 'Answer id: ' + d.id + (d.isAccepted ? ' [accepted]' : '') + '\n' + (d.content || '').slice(0, 200);
+      }
+
+      function uiAccept(res) {
+        const d = unwrap(res);
+        if (!d || !d.id) return String(res);
+        return 'Post updated. Accepted answer: ' + (d.acceptedAnswerId || '—');
+      }
+
+      document.getElementById('btnSignUp').onclick = async function () {
+        const payload = {
+          username: document.getElementById('suUsername').value.trim(),
+          email: document.getElementById('suEmail').value.trim(),
+          displayName: document.getElementById('suDisplayName').value.trim(),
+          password: document.getElementById('suPassword').value
+        };
+        try {
+          const res = await request('POST', '/auth/sign-up', payload, false);
+          const tokens = unwrap(res);
+          setTokens(tokens.accessToken, tokens.refreshToken);
+          authLog('Sign up OK');
+        } catch (e) {
+          authLog('Sign up error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnSignIn').onclick = async function () {
+        const payload = {
+          identifier: document.getElementById('siIdentifier').value.trim(),
+          password: document.getElementById('siPassword').value
+        };
+        try {
+          const res = await request('POST', '/auth/sign-in', payload, false);
+          const tokens = unwrap(res);
+          setTokens(tokens.accessToken, tokens.refreshToken);
+          authLog('Sign in OK');
+        } catch (e) {
+          authLog('Sign in error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnMe').onclick = async function () {
+        try {
+          const res = await requestWithRefresh('GET', '/auth/me', null, true);
+          setOutput('meOutput', res, uiMe(res));
+        } catch (e) {
+          setOutput('meOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnRefresh').onclick = async function () {
+        if (!refreshToken) { authLog('No refresh token'); return; }
+        try {
+          const res = await request('POST', '/auth/refresh', { refreshToken }, false);
+          const tokens = unwrap(res);
+          setTokens(tokens.accessToken, tokens.refreshToken);
+          authLog('Refresh OK');
+        } catch (e) {
+          authLog('Refresh error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnSignOut').onclick = async function () {
+        try {
+          await requestWithRefresh('POST', '/auth/sign-out', null, true);
+        } catch (_) {}
+        setTokens(null, null);
+        authLog('Signed out');
+      };
+
+      document.getElementById('btnListPosts').onclick = async function () {
+        const page = document.getElementById('postsPage').value || 1;
+        const limit = document.getElementById('postsLimit').value || 10;
+        const type = document.getElementById('postsType').value;
+        const sort = document.getElementById('postsSort').value;
+        const language = document.getElementById('postsLanguage').value.trim();
+        let path = '/posts?page=' + page + '&limit=' + limit + '&sort=' + sort;
+        if (type) path += '&type=' + type;
+        if (language) path += '&language=' + encodeURIComponent(language);
+        try {
+          const res = await request('GET', path, null, false);
+          setOutput('postsListOutput', res, uiPostsList(res));
+        } catch (e) {
+          setOutput('postsListOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnGetPost').onclick = async function () {
+        const id = document.getElementById('getPostId').value.trim();
+        if (!id) { setOutput('postDetailOutput', 'Enter post ID', 'Enter post ID'); return; }
+        try {
+          const res = await request('GET', '/posts/' + id, null, false);
+          setOutput('postDetailOutput', res, uiPostDetail(res));
+        } catch (e) {
+          setOutput('postDetailOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnCreatePost').onclick = async function () {
+        const tagIdsStr = document.getElementById('createPostTagIds').value.trim();
+        const tagIds = tagIdsStr ? tagIdsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+        const payload = {
+          type: document.getElementById('createPostType').value,
+          title: document.getElementById('createPostTitle').value.trim(),
+          content: document.getElementById('createPostContent').value.trim(),
+          targetLanguageId: document.getElementById('createPostTargetLanguageId').value.trim(),
+          tagIds
+        };
+        try {
+          const res = await requestWithRefresh('POST', '/posts', payload, true);
+          setOutput('createPostOutput', res, uiPostOne(res));
+        } catch (e) {
+          setOutput('createPostOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnUpdatePost').onclick = async function () {
+        const id = document.getElementById('updatePostId').value.trim();
+        if (!id) { setOutput('updatePostOutput', 'Enter post ID', 'Enter post ID'); return; }
+        const payload = {};
+        const title = document.getElementById('updatePostTitle').value.trim();
+        const content = document.getElementById('updatePostContent').value.trim();
+        const tagIdsStr = document.getElementById('updatePostTagIds').value.trim();
+        if (title) payload.title = title;
+        if (content) payload.content = content;
+        if (tagIdsStr) payload.tagIds = tagIdsStr.split(',').map(s => s.trim()).filter(Boolean);
+        try {
+          const res = await requestWithRefresh('PUT', '/posts/' + id, payload, true);
+          setOutput('updatePostOutput', res, uiPostOne(res));
+        } catch (e) {
+          setOutput('updatePostOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnDeletePost').onclick = async function () {
+        const id = document.getElementById('deletePostId').value.trim();
+        if (!id) { setOutput('deletePostOutput', 'Enter post ID', 'Enter post ID'); return; }
+        try {
+          const res = await requestWithRefresh('DELETE', '/posts/' + id, null, true);
+          setOutput('deletePostOutput', res || { message: 'Deleted' }, 'Post deleted.');
+        } catch (e) {
+          setOutput('deletePostOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnListAnswers').onclick = async function () {
+        const postId = document.getElementById('answersPostId').value.trim();
+        if (!postId) { setOutput('answersListOutput', 'Enter post ID', 'Enter post ID'); return; }
+        const sort = document.getElementById('answersSort').value;
+        try {
+          const res = await request('GET', '/posts/' + postId + '/answers?sort=' + sort, null, false);
+          setOutput('answersListOutput', res, uiAnswersList(res));
+        } catch (e) {
+          setOutput('answersListOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnCreateAnswer').onclick = async function () {
+        const postId = document.getElementById('createAnswerPostId').value.trim();
+        const content = document.getElementById('createAnswerContent').value.trim();
+        if (!postId || !content) { setOutput('createAnswerOutput', 'Post ID and content required', 'Post ID and content required'); return; }
+        try {
+          const res = await requestWithRefresh('POST', '/posts/' + postId + '/answers', { content }, true);
+          setOutput('createAnswerOutput', res, uiAnswerOne(res));
+        } catch (e) {
+          setOutput('createAnswerOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnUpdateAnswer').onclick = async function () {
+        const id = document.getElementById('updateAnswerId').value.trim();
+        const content = document.getElementById('createAnswerContentUpdate').value.trim();
+        if (!id || !content) { setOutput('updateAnswerOutput', 'Answer ID and content required', 'Answer ID and content required'); return; }
+        try {
+          const res = await requestWithRefresh('PUT', '/answers/' + id, { content }, true);
+          setOutput('updateAnswerOutput', res, uiAnswerOne(res));
+        } catch (e) {
+          setOutput('updateAnswerOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnDeleteAnswer').onclick = async function () {
+        const id = document.getElementById('deleteAnswerId').value.trim();
+        if (!id) { setOutput('deleteAnswerOutput', 'Enter answer ID', 'Enter answer ID'); return; }
+        try {
+          const res = await requestWithRefresh('DELETE', '/answers/' + id, null, true);
+          setOutput('deleteAnswerOutput', res || { message: 'Deleted' }, 'Answer deleted.');
+        } catch (e) {
+          setOutput('deleteAnswerOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnAcceptAnswer').onclick = async function () {
+        const postId = document.getElementById('acceptPostId').value.trim();
+        const answerId = document.getElementById('acceptAnswerId').value.trim();
+        if (!postId || !answerId) { setOutput('acceptOutput', 'Post ID and answer ID required', 'Post ID and answer ID required'); return; }
+        try {
+          const res = await requestWithRefresh('POST', '/posts/' + postId + '/accept-answer/' + answerId, null, true);
+          setOutput('acceptOutput', res, uiAccept(res));
+        } catch (e) {
+          setOutput('acceptOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnUnacceptAnswer').onclick = async function () {
+        const postId = document.getElementById('acceptPostId').value.trim();
+        if (!postId) { setOutput('acceptOutput', 'Post ID required', 'Post ID required'); return; }
+        try {
+          const res = await requestWithRefresh('DELETE', '/posts/' + postId + '/unaccept-answer', null, true);
+          setOutput('acceptOutput', res, uiAccept(res));
+        } catch (e) {
+          setOutput('acceptOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnListLanguages').onclick = async function () {
+        try {
+          const res = await request('GET', '/languages', null, false);
+          const list = unwrap(res);
+          let s = (list || []).length + ' language(s)\n\n';
+          (list || []).forEach(function (l, i) {
+            s += (i + 1) + '. ' + l.code + ' — ' + l.name + '  (id: ' + l.id + ')\n';
+          });
+          setOutput('languagesOutput', res, s);
+        } catch (e) {
+          setOutput('languagesOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnListTags').onclick = async function () {
+        const language = document.getElementById('tagsLanguage').value.trim();
+        let path = '/tags';
+        if (language) path += '?language=' + encodeURIComponent(language);
+        try {
+          const res = await request('GET', path, null, false);
+          const list = unwrap(res);
+          let s = (list || []).length + ' tag(s)\n\n';
+          (list || []).forEach(function (t, i) {
+            const lang = t.language ? t.language.code : 'global';
+            s += (i + 1) + '. ' + t.name + ' (' + t.slug + ') [' + lang + ']  id: ' + t.id + '\n';
+          });
+          setOutput('tagsOutput', res, s);
+        } catch (e) {
+          setOutput('tagsOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnListUserLangs').onclick = async function () {
+        const username = document.getElementById('userLangsUsername').value.trim();
+        if (!username) { setOutput('userLangsListOutput', 'Enter username', 'Enter username'); return; }
+        try {
+          const res = await request('GET', '/users/' + encodeURIComponent(username) + '/languages', null, false);
+          const list = unwrap(res);
+          let s = (list || []).length + ' language relation(s)\n\n';
+          (list || []).forEach(function (r, i) {
+            s += (i + 1) + '. ' + (r.language && r.language.code) + ' (' + (r.language && r.language.name) + ') — ' + r.relation + (r.proficiency ? ' [' + r.proficiency + ']' : '') + '  id: ' + r.id + '\n';
+          });
+          setOutput('userLangsListOutput', res, s);
+        } catch (e) {
+          setOutput('userLangsListOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnCreateUserLang').onclick = async function () {
+        const payload = {
+          languageId: document.getElementById('userLangCreateLangId').value.trim(),
+          relation: document.getElementById('userLangCreateRelation').value
+        };
+        const prof = document.getElementById('userLangCreateProficiency').value;
+        if (prof) payload.proficiency = prof;
+        try {
+          const res = await requestWithRefresh('POST', '/users/languages', payload, true);
+          const d = unwrap(res);
+          setOutput('userLangsCreateOutput', res, 'Created: ' + (d.language && d.language.code) + ' — ' + d.relation + (d.proficiency ? ' [' + d.proficiency + ']' : '') + '  id: ' + d.id);
+        } catch (e) {
+          setOutput('userLangsCreateOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnUpdateUserLang').onclick = async function () {
+        const id = document.getElementById('userLangUpdateId').value.trim();
+        if (!id) { setOutput('userLangsUpdateOutput', 'Enter ID', 'Enter ID'); return; }
+        const payload = {};
+        const prof = document.getElementById('userLangUpdateProficiency').value;
+        if (prof) payload.proficiency = prof;
+        try {
+          const res = await requestWithRefresh('PUT', '/users/languages/' + id, payload, true);
+          const d = unwrap(res);
+          setOutput('userLangsUpdateOutput', res, 'Updated: ' + (d.language && d.language.code) + ' — ' + d.relation + (d.proficiency ? ' [' + d.proficiency + ']' : '') + '  id: ' + d.id);
+        } catch (e) {
+          setOutput('userLangsUpdateOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      document.getElementById('btnDeleteUserLang').onclick = async function () {
+        const id = document.getElementById('userLangDeleteId').value.trim();
+        if (!id) { setOutput('userLangsDeleteOutput', 'Enter ID', 'Enter ID'); return; }
+        try {
+          const res = await requestWithRefresh('DELETE', '/users/languages/' + id, null, true);
+          setOutput('userLangsDeleteOutput', res || { message: 'Deleted' }, 'Deleted.');
+        } catch (e) {
+          setOutput('userLangsDeleteOutput', 'Error: ' + e.message, 'Error: ' + e.message);
+        }
+      };
+
+      setTokens(accessToken, refreshToken);
+    })();
+  </script>
+</body>
+</html>
