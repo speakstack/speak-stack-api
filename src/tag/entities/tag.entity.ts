@@ -2,8 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { Language } from "../../language/entities/language.entity";
 
 @Entity("tags")
 export class Tag {
@@ -27,6 +30,13 @@ export class Tag {
 
   @Column({ default: 0 })
   followersCount: number;
+
+  @ManyToOne(() => Language, { nullable: true, eager: false })
+  @JoinColumn()
+  language: Language | null;
+
+  @Column({ nullable: true, type: "uuid" })
+  languageId: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

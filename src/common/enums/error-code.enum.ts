@@ -107,6 +107,16 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.NOT_FOUND,
     message: "One or more tags not found",
   },
+  // Language errors
+  LANGUAGE_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Language not found",
+  },
+  // User language errors
+  USER_LANGUAGE_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "User language relation not found",
+  },
   // Server errors
   INTERNAL_ERROR: {
     httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -164,6 +174,12 @@ export class ErrorCode {
   static readonly NO_ACCEPTED_ANSWER = new ErrorCode("NO_ACCEPTED_ANSWER");
   // Tag errors
   static readonly TAG_NOT_FOUND = new ErrorCode("TAG_NOT_FOUND");
+  // Language errors
+  static readonly LANGUAGE_NOT_FOUND = new ErrorCode("LANGUAGE_NOT_FOUND");
+  // User language errors
+  static readonly USER_LANGUAGE_NOT_FOUND = new ErrorCode(
+    "USER_LANGUAGE_NOT_FOUND",
+  );
   // Server errors
   static readonly INTERNAL_ERROR = new ErrorCode("INTERNAL_ERROR");
 

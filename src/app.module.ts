@@ -15,6 +15,10 @@ import { TagModule } from "./tag/tag.module";
 import { ReputationModule } from "./reputation/reputation.module";
 import { PostModule } from "./post/post.module";
 import { AnswerModule } from "./answer/answer.module";
+import { Language } from "./language/entities/language.entity";
+import { LanguageModule } from "./language/language.module";
+import { UserLanguage } from "./user-language/entities/user-language.entity";
+import { UserLanguageModule } from "./user-language/user-language.module";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -38,7 +42,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
         username: configService.get<string>("database.username"),
         password: configService.get<string>("database.password"),
         database: configService.get<string>("database.database"),
-        entities: [User, Tag, Post, Answer, ReputationHistory],
+        entities: [User, Tag, Post, Answer, ReputationHistory, Language, UserLanguage],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: Bun.env.NODE_ENV !== "production",
         logging: Bun.env.NODE_ENV === "development",
@@ -51,6 +55,8 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     ReputationModule,
     PostModule,
     AnswerModule,
+    LanguageModule,
+    UserLanguageModule,
   ],
   providers: [
     {
