@@ -6,7 +6,12 @@ import {
   Param,
   Query,
 } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiOperation,
+  ApiPropertyOptional,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { IsOptional, IsString } from "class-validator";
 import { TagService } from "./tag.service";
 import { Tag } from "./entities/tag.entity";
@@ -15,6 +20,9 @@ import { Public } from "../common/decorators/public.decorator";
 import { ApiSuccessMessage } from "../common/decorators/api-success-message.decorator";
 
 export class ListTagsQueryDto {
+  @ApiPropertyOptional({
+    description: "Filter by language code (e.g. 'ja')",
+  })
   @IsOptional()
   @IsString()
   language?: string;

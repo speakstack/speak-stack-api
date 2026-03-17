@@ -28,7 +28,10 @@ export class TagService {
       .createQueryBuilder("tag")
       .leftJoinAndSelect("tag.language", "language");
     if (language) {
-      qb.andWhere("language.code = :language", { language });
+      qb.andWhere(
+        "(language.code = :language OR tag.languageId IS NULL)",
+        { language },
+      );
     }
     qb.orderBy("tag.name", "ASC");
     return qb.getMany();
