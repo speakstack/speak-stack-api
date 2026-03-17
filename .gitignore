@@ -55,6 +55,9 @@ pids
 # Ai things
 /ai
 
+# HTML
+/html
+
 # OpenSpec
 /openspec
 
