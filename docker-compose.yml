@@ -13,10 +13,36 @@ services:
     env_file:
       - .env
     environment:
-      # Override DATABASE_HOST for Docker network
       DATABASE_HOST: postgres
     networks:
       - speak-stack-network
+    profiles:
+      - prod
+
+  api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: speak-stack-api-dev
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_HOST: postgres
+    volumes:
+      - ./src:/app/src
+      - ./nest-cli.json:/app/nest-cli.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.build.json:/app/tsconfig.build.json
+    networks:
+      - speak-stack-network
+    profiles:
+      - dev
 
   postgres:
     image: postgres:16-alpine
