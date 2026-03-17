@@ -21,14 +21,15 @@ export enum PostSort {
   UNANSWERED = "unanswered",
 }
 
+const POST_TYPE_MESSAGE =
+  "Type must be one of: question, discussion, resource, practice, how_do_you_say, does_this_sound_natural, please_correct, whats_the_difference";
+
 export class CreatePostDto {
   @ApiProperty({
     description: "Post type",
     enum: PostType,
   })
-  @IsEnum(PostType, {
-    message: "Type must be one of: question, discussion, resource, practice",
-  })
+  @IsEnum(PostType, { message: POST_TYPE_MESSAGE })
   type: PostType;
 
   @ApiProperty({ description: "Post title (10-200 characters)" })
@@ -43,6 +44,10 @@ export class CreatePostDto {
   @IsNotEmpty({ message: "Content is required" })
   @MinLength(20, { message: "Content must be at least 20 characters long" })
   content: string;
+
+  @ApiProperty({ description: "Target language UUID" })
+  @IsUUID("4", { message: "Target language ID must be a valid UUID" })
+  targetLanguageId: string;
 
   @ApiProperty({
     description: "Array of 1-5 tag UUIDs",
@@ -61,9 +66,7 @@ export class UpdatePostDto {
     enum: PostType,
   })
   @IsOptional()
-  @IsEnum(PostType, {
-    message: "Type must be one of: question, discussion, resource, practice",
-  })
+  @IsEnum(PostType, { message: POST_TYPE_MESSAGE })
   type?: PostType;
 
   @ApiPropertyOptional({ description: "Post title (10-200 characters)" })
@@ -106,9 +109,7 @@ export class ListPostsQueryDto {
 
   @ApiPropertyOptional({ description: "Filter by post type", enum: PostType })
   @IsOptional()
-  @IsEnum(PostType, {
-    message: "Type must be one of: question, discussion, resource, practice",
-  })
+  @IsEnum(PostType, { message: POST_TYPE_MESSAGE })
   type?: PostType;
 
   @ApiPropertyOptional({ description: "Filter by post status", enum: PostStatus })
@@ -134,6 +135,11 @@ export class ListPostsQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({ description: "Filter by target language BCP 47 code (e.g. 'ja')" })
+  @IsOptional()
+  @IsString()
+  language?: string;
 
   @ApiPropertyOptional({
     description: "Sort order: new, top, unanswered",
@@ -166,6 +172,12 @@ export class PostTagDto {
   @ApiProperty() color: string;
 }
 
+export class PostLanguageDto {
+  @ApiProperty() id: string;
+  @ApiProperty() code: string;
+  @ApiProperty() name: string;
+}
+
 export class PostResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() type: string;
@@ -174,6 +186,7 @@ export class PostResponseDto {
   @ApiProperty() content: string;
   @ApiProperty() author: PostAuthorDto;
   @ApiProperty({ type: [PostTagDto] }) tags: PostTagDto[];
+  @ApiProperty() targetLanguage: PostLanguageDto;
   @ApiProperty() score: number;
   @ApiProperty() answerCount: number;
   @ApiProperty() viewCount: number;
@@ -189,6 +202,7 @@ export class PostDetailResponseDto {
   @ApiProperty() content: string;
   @ApiProperty() author: PostAuthorDetailDto;
   @ApiProperty({ type: [PostTagDto] }) tags: PostTagDto[];
+  @ApiProperty() targetLanguage: PostLanguageDto;
   @ApiProperty({ nullable: true }) acceptedAnswerId: string | null;
   @ApiProperty() score: number;
   @ApiProperty() answerCount: number;

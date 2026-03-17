@@ -11,12 +11,17 @@ import {
 } from "typeorm";
 import { User } from "../../user/entities/user.entity";
 import { Tag } from "../../tag/entities/tag.entity";
+import { Language } from "../../language/entities/language.entity";
 
 export enum PostType {
   QUESTION = "question",
   DISCUSSION = "discussion",
   RESOURCE = "resource",
-  PRACTICE = "practice",
+  // PRACTICE = "practice",
+  HOW_DO_YOU_SAY = "how_do_you_say",
+  DOES_THIS_SOUND_NATURAL = "does_this_sound_natural",
+  PLEASE_CORRECT = "please_correct",
+  WHATS_THE_DIFFERENCE = "whats_the_difference",
 }
 
 export enum PostStatus {
@@ -90,6 +95,13 @@ export class Post {
 
   @Column({ nullable: true, type: "uuid" })
   closedById: string | null;
+
+  @ManyToOne(() => Language, { eager: false })
+  @JoinColumn()
+  targetLanguage: Language;
+
+  @Column()
+  targetLanguageId: string;
 
   @ManyToMany(() => Tag, { eager: false })
   @JoinTable({

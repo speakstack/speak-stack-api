@@ -5,6 +5,7 @@ import { Post, PostStatus } from "./entities/post.entity";
 import { Answer } from "../answer/entities/answer.entity";
 import { Tag } from "../tag/entities/tag.entity";
 import { User } from "../user/entities/user.entity";
+import { Language } from "../language/entities/language.entity";
 import { ReputationHistory } from "../reputation/entities/reputation-history.entity";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
@@ -38,6 +39,8 @@ export class PostService {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Language)
+    private readonly languageRepository: Repository<Language>,
     @InjectRepository(ReputationHistory)
     private readonly reputationHistoryRepository: Repository<ReputationHistory>,
     private readonly dataSource: DataSource,
@@ -47,6 +50,12 @@ export class PostService {
     userId: string,
     dto: CreatePostDto,
   ): Promise<PostResponseDto> {
+    const language = await this.languageRepository.findOne({
+      where: { id: dto.targetLanguageId },
+    });
+    if (!language) {
+      throw new AppException(ErrorCode.LANGUAGE_NOT_FOUND);
+    }
     const tags = await this.tagRepository.findBy({ id: In(dto.tagIds) });
     if (tags.length !== dto.tagIds.length) {
       throw new AppException(ErrorCode.TAG_NOT_FOUND);
@@ -60,6 +69,7 @@ export class PostService {
         type: dto.type,
         title: dto.title,
         content: sanitizedContent,
+        targetLanguageId: dto.targetLanguageId,
         tags,
       });
       const savedPost = await manager.save(Post, post);
@@ -95,6 +105,7 @@ export class PostService {
       .createQueryBuilder("post")
       .leftJoinAndSelect("post.author", "author")
       .leftJoinAndSelect("post.tags", "tags")
+      .leftJoinAndSelect("post.targetLanguage", "targetLanguage")
       .where("post.isDeleted = :isDeleted", { isDeleted: false });
 
     if (query.type) {
@@ -123,9 +134,15 @@ export class PostService {
 
     if (query.search) {
       qb.andWhere(
-        `to_tsvector('english', post.title || ' ' || post.content) @@ plainto_tsquery('english', :search)`,
+        `to_tsvector('simple', post.title || ' ' || post.content) @@ plainto_tsquery('simple', :search)`,
         { search: query.search },
       );
+    }
+
+    if (query.language) {
+      qb.andWhere("targetLanguage.code = :language", {
+        language: query.language,
+      });
     }
 
     if (query.sort === PostSort.TOP) {
@@ -300,7 +317,7 @@ export class PostService {
   async findPostWithRelations(id: string): Promise<Post> {
     const post = await this.postRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ["author", "tags"],
+      relations: ["author", "tags", "targetLanguage"],
     });
     if (!post) {
       throw new AppException(ErrorCode.POST_NOT_FOUND);
@@ -332,6 +349,11 @@ export class PostService {
         slug: t.slug,
         color: t.color,
       })),
+      targetLanguage: {
+        id: post.targetLanguage.id,
+        code: post.targetLanguage.code,
+        name: post.targetLanguage.name,
+      },
       score: post.score,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
@@ -361,6 +383,11 @@ export class PostService {
         slug: t.slug,
         color: t.color,
       })),
+      targetLanguage: {
+        id: post.targetLanguage.id,
+        code: post.targetLanguage.code,
+        name: post.targetLanguage.name,
+      },
       acceptedAnswerId: post.acceptedAnswerId,
       score: post.score,
       answerCount: post.answerCount,

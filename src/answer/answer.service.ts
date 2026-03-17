@@ -118,15 +118,14 @@ export class AnswerService {
       .where("answer.postId = :postId", { postId })
       .andWhere("answer.isDeleted = :isDeleted", { isDeleted: false });
     if (query.sort === AnswerSort.NEW) {
-      qb.orderBy("answer.isAccepted", "DESC").addOrderBy(
-        "answer.createdAt",
-        "DESC",
-      );
+      qb.orderBy("answer.isAccepted", "DESC")
+        .addOrderBy("answer.isVerified", "DESC")
+        .addOrderBy("answer.createdAt", "DESC");
     } else {
-      qb.orderBy("answer.isAccepted", "DESC").addOrderBy(
-        "answer.score",
-        "DESC",
-      );
+      qb.orderBy("answer.isAccepted", "DESC")
+        .addOrderBy("answer.isVerified", "DESC")
+        .addOrderBy("answer.score", "DESC")
+        .addOrderBy("answer.createdAt", "DESC");
     }
     const [answers, total] = await qb
       .skip(offset)
