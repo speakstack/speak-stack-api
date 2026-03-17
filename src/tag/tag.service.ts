@@ -30,10 +30,7 @@ export class TagService {
     if (scope === "global") {
       qb.andWhere("tag.languageId IS NULL");
     } else if (language) {
-      qb.andWhere(
-        "(language.code = :language OR tag.languageId IS NULL)",
-        { language },
-      );
+      qb.andWhere("language.code = :language", { language });
     }
     qb.orderBy("tag.name", "ASC");
     return qb.getMany();
