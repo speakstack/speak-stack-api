@@ -12,7 +12,7 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsIn, IsOptional, IsString } from "class-validator";
 import { TagService } from "./tag.service";
 import { Tag } from "./entities/tag.entity";
 import { TagDetailResponseDto } from "./dto/tag.dto";
@@ -26,6 +26,14 @@ export class ListTagsQueryDto {
   @IsOptional()
   @IsString()
   language?: string;
+
+  @ApiPropertyOptional({
+    description: "Filter scope: 'global' returns only language-neutral tags",
+    enum: ["global"],
+  })
+  @IsOptional()
+  @IsIn(["global"], { message: "Scope must be 'global'" })
+  scope?: string;
 }
 
 @ApiTags("Tags")
@@ -40,7 +48,7 @@ export class TagController {
   @ApiResponse({ status: HttpStatus.OK })
   @ApiSuccessMessage("Tags retrieved successfully")
   findAll(@Query() query: ListTagsQueryDto): Promise<Tag[]> {
-    return this.tagService.findAll(query.language);
+    return this.tagService.findAll(query.language, query.scope);
   }
 
   @Public()
