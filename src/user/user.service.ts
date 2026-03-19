@@ -6,6 +6,10 @@ import * as path from "path";
 import * as fs from "fs/promises";
 import sharp from "sharp";
 import { User } from "./entities/user.entity";
+import {
+  UserLanguage,
+  UserLanguageRelation,
+} from "../user-language/entities/user-language.entity";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { UserProfileDto } from "../auth/dto/auth.dto";
 import { AppException } from "../common/exceptions/app.exception";
@@ -29,6 +33,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserLanguage)
+    private readonly userLanguageRepository: Repository<UserLanguage>,
   ) {}
 
   async updateProfile(
@@ -40,12 +46,9 @@ export class UserService {
     if (dto.displayName !== undefined) {
       user.displayName = dto.displayName;
     }
-    if (dto.avatarUrl !== undefined) {
-      user.avatarUrl = dto.avatarUrl;
-    }
 
     const saved = await this.userRepository.save(user);
-    return this.toUserProfileDto(saved);
+    return this.toUserProfileDto(saved.id, saved);
   }
 
   async uploadAvatar(
@@ -90,7 +93,7 @@ export class UserService {
     const saved = await this.userRepository.save(user);
 
     this.logger.log(`Avatar uploaded for user ${user.username}`);
-    return this.toUserProfileDto(saved);
+    return this.toUserProfileDto(saved.id, saved);
   }
 
   private async findActiveUser(userId: string): Promise<User> {
@@ -104,7 +107,13 @@ export class UserService {
     return user;
   }
 
-  private toUserProfileDto(user: User): UserProfileDto {
+  private async toUserProfileDto(
+    userId: string,
+    user: User,
+  ): Promise<UserProfileDto> {
+    const nativeCount = await this.userLanguageRepository.count({
+      where: { userId, relation: UserLanguageRelation.NATIVE },
+    });
     return {
       id: user.id,
       username: user.username,
@@ -112,6 +121,7 @@ export class UserService {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       isActive: user.isActive,
+      isSetupComplete: nativeCount > 0,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

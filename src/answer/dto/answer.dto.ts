@@ -56,7 +56,7 @@ export class ListAnswersQueryDto {
 export class AnswerAuthorDto {
   @ApiProperty() id: string;
   @ApiProperty() username: string;
-  @ApiProperty() displayName: string;
+  @ApiProperty({ nullable: true }) displayName: string | null;
   @ApiProperty({ nullable: true }) avatarUrl: string | null;
 }
 
