@@ -117,6 +117,22 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.NOT_FOUND,
     message: "User language relation not found",
   },
+  USER_LANGUAGE_ALREADY_EXISTS: {
+    httpStatus: HttpStatus.CONFLICT,
+    message: "This language is already added for this user",
+  },
+  NATIVE_LANGUAGE_LIMIT: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 1 native language allowed",
+  },
+  LEARNING_LANGUAGE_LIMIT: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 5 learning languages allowed",
+  },
+  CAN_HELP_LANGUAGE_LIMIT: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 5 can_help languages allowed",
+  },
   // Server errors
   INTERNAL_ERROR: {
     httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -179,6 +195,18 @@ export class ErrorCode {
   // User language errors
   static readonly USER_LANGUAGE_NOT_FOUND = new ErrorCode(
     "USER_LANGUAGE_NOT_FOUND",
+  );
+  static readonly USER_LANGUAGE_ALREADY_EXISTS = new ErrorCode(
+    "USER_LANGUAGE_ALREADY_EXISTS",
+  );
+  static readonly NATIVE_LANGUAGE_LIMIT = new ErrorCode(
+    "NATIVE_LANGUAGE_LIMIT",
+  );
+  static readonly LEARNING_LANGUAGE_LIMIT = new ErrorCode(
+    "LEARNING_LANGUAGE_LIMIT",
+  );
+  static readonly CAN_HELP_LANGUAGE_LIMIT = new ErrorCode(
+    "CAN_HELP_LANGUAGE_LIMIT",
   );
   // Server errors
   static readonly INTERNAL_ERROR = new ErrorCode("INTERNAL_ERROR");
