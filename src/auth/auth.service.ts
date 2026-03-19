@@ -144,6 +144,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
       isActive: user.isActive,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

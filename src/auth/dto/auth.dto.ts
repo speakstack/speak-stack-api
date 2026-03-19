@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsEmail,
   IsNotEmpty,
@@ -77,6 +77,9 @@ export class UserProfileDto {
 
   @ApiProperty({ description: "Display name" })
   displayName: string;
+
+  @ApiPropertyOptional({ description: "Avatar URL", nullable: true })
+  avatarUrl: string | null;
 
   @ApiProperty({ description: "Account status" })
   isActive: boolean;

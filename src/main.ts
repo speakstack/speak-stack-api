@@ -1,7 +1,9 @@
 import { NestFactory, Reflector } from "@nestjs/core";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ValidationError } from "class-validator";
+import * as path from "path";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
@@ -48,8 +50,11 @@ function setupSwagger(
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger("Bootstrap");
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ["error", "warn", "log", "debug", "verbose"],
+  });
+  app.useStaticAssets(path.join(process.cwd(), "uploads"), {
+    prefix: "/uploads",
   });
   const corsOrigin = Bun.env.CORS_ORIGIN || "http://localhost:3000";
   const isWildcard = corsOrigin.trim() === "*";
