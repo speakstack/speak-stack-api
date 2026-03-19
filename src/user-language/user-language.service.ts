@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { QueryFailedError, Repository } from "typeorm";
 import {
   UserLanguage,
   UserLanguageRelation,
@@ -53,13 +53,27 @@ export class UserLanguageService {
     if (!language) {
       throw new AppException(ErrorCode.LANGUAGE_NOT_FOUND);
     }
+    await this.validateLimits(userId, dto.languageId, dto.relation);
     const row = this.userLanguageRepository.create({
       userId,
       languageId: dto.languageId,
       relation: dto.relation,
       proficiency: dto.proficiency ?? null,
     });
-    const saved = await this.userLanguageRepository.save(row);
+    let saved: UserLanguage;
+    try {
+      saved = await this.userLanguageRepository.save(row);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error as QueryFailedError & { detail?: string }).detail?.includes(
+          "already exists",
+        )
+      ) {
+        throw new AppException(ErrorCode.USER_LANGUAGE_ALREADY_EXISTS);
+      }
+      throw error;
+    }
     saved.language = language;
     return this.toResponse(saved);
   }
@@ -94,6 +108,33 @@ export class UserLanguageService {
       throw new AppException(ErrorCode.FORBIDDEN);
     }
     await this.userLanguageRepository.remove(row);
+  }
+
+  private async validateLimits(
+    userId: string,
+    languageId: string,
+    relation: UserLanguageRelation,
+  ): Promise<void> {
+    const existing = await this.userLanguageRepository.findOne({
+      where: { userId, languageId },
+    });
+    if (existing) {
+      throw new AppException(ErrorCode.USER_LANGUAGE_ALREADY_EXISTS);
+    }
+
+    const LIMITS: Record<UserLanguageRelation, { max: number; error: ErrorCode }> = {
+      [UserLanguageRelation.NATIVE]: { max: 1, error: ErrorCode.NATIVE_LANGUAGE_LIMIT },
+      [UserLanguageRelation.LEARNING]: { max: 5, error: ErrorCode.LEARNING_LANGUAGE_LIMIT },
+      [UserLanguageRelation.CAN_HELP]: { max: 5, error: ErrorCode.CAN_HELP_LANGUAGE_LIMIT },
+    };
+
+    const { max, error } = LIMITS[relation];
+    const count = await this.userLanguageRepository.count({
+      where: { userId, relation },
+    });
+    if (count >= max) {
+      throw new AppException(error);
+    }
   }
 
   private validateProficiency(

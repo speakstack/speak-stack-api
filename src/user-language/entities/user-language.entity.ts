@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "../../user/entities/user.entity";
@@ -25,6 +26,7 @@ export enum LanguageProficiency {
 }
 
 @Entity("user_languages")
+@Unique(["userId", "languageId"])
 export class UserLanguage {
   @PrimaryGeneratedColumn("uuid")
   id: string;
