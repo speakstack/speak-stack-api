@@ -194,6 +194,16 @@ export class PostResponseDto {
   @ApiProperty() updatedAt: Date;
 }
 
+export class PostAttachmentResponseDto {
+  @ApiProperty() id: string;
+  @ApiProperty() originalName: string;
+  @ApiProperty() url: string;
+  @ApiProperty() mimeType: string;
+  @ApiProperty() size: number;
+  @ApiProperty() type: string;
+  @ApiProperty() createdAt: Date;
+}
+
 export class PostDetailResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() type: string;
@@ -204,6 +214,7 @@ export class PostDetailResponseDto {
   @ApiProperty({ type: [PostTagDto] }) tags: PostTagDto[];
   @ApiProperty() targetLanguage: PostLanguageDto;
   @ApiProperty({ nullable: true }) acceptedAnswerId: string | null;
+  @ApiProperty({ type: [PostAttachmentResponseDto] }) attachments: PostAttachmentResponseDto[];
   @ApiProperty() score: number;
   @ApiProperty() answerCount: number;
   @ApiProperty() viewCount: number;

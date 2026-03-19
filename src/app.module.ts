@@ -9,6 +9,7 @@ import { UserModule } from "./user/user.module";
 import { User } from "./user/entities/user.entity";
 import { Tag } from "./tag/entities/tag.entity";
 import { Post } from "./post/entities/post.entity";
+import { PostAttachment } from "./post/entities/post-attachment.entity";
 import { Answer } from "./answer/entities/answer.entity";
 import { ReputationHistory } from "./reputation/entities/reputation-history.entity";
 import { TagModule } from "./tag/tag.module";
@@ -42,7 +43,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
         username: configService.get<string>("database.username"),
         password: configService.get<string>("database.password"),
         database: configService.get<string>("database.database"),
-        entities: [User, Tag, Post, Answer, ReputationHistory, Language, UserLanguage],
+        entities: [User, Tag, Post, PostAttachment, Answer, ReputationHistory, Language, UserLanguage],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: Bun.env.NODE_ENV !== "production",
         logging: Bun.env.NODE_ENV === "development",

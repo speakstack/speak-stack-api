@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Post } from "./entities/post.entity";
+import { PostAttachment } from "./entities/post-attachment.entity";
 import { Answer } from "../answer/entities/answer.entity";
 import { Language } from "../language/entities/language.entity";
 import { PostController } from "./post.controller";
@@ -12,7 +13,7 @@ import { ReputationModule } from "../reputation/reputation.module";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Post, Answer, Language]),
+    TypeOrmModule.forFeature([Post, PostAttachment, Answer, Language]),
     UserModule,
     TagModule,
     LanguageModule,

@@ -10,9 +10,14 @@ import {
   Post,
   Put,
   Query,
+  UploadedFiles,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -21,6 +26,7 @@ import { PostService } from "./post.service";
 import {
   CreatePostDto,
   ListPostsQueryDto,
+  PostAttachmentResponseDto,
   PostDetailResponseDto,
   PostListResponseDto,
   PostResponseDto,
@@ -95,5 +101,53 @@ export class PostController {
     @Param("id", ParseUUIDPipe) id: string,
   ): Promise<void> {
     return this.postService.deletePost(userId, id);
+  }
+
+  @ApiBearerAuth()
+  @Post(":id/attachments")
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(
+    FilesInterceptor("files", 10, {
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiOperation({ summary: "Upload attachments to a post" })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        files: {
+          type: "array",
+          items: { type: "string", format: "binary" },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    type: [PostAttachmentResponseDto],
+  })
+  @ApiSuccessMessage("Attachments uploaded successfully")
+  uploadAttachments(
+    @GetCurrentUser("sub") userId: string,
+    @Param("id", ParseUUIDPipe) postId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<PostAttachmentResponseDto[]> {
+    return this.postService.uploadAttachments(userId, postId, files);
+  }
+
+  @ApiBearerAuth()
+  @Delete(":id/attachments/:attachmentId")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete an attachment from a post" })
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiSuccessMessage("Attachment deleted successfully")
+  deleteAttachment(
+    @GetCurrentUser("sub") userId: string,
+    @Param("id", ParseUUIDPipe) postId: string,
+    @Param("attachmentId", ParseUUIDPipe) attachmentId: string,
+  ): Promise<void> {
+    return this.postService.deleteAttachment(userId, postId, attachmentId);
   }
 }

@@ -6,12 +6,14 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "../../user/entities/user.entity";
 import { Tag } from "../../tag/entities/tag.entity";
 import { Language } from "../../language/entities/language.entity";
+import { PostAttachment } from "./post-attachment.entity";
 
 export enum PostType {
   QUESTION = "question",
@@ -110,6 +112,9 @@ export class Post {
     inverseJoinColumn: { name: "tag_id", referencedColumnName: "id" },
   })
   tags: Tag[];
+
+  @OneToMany(() => PostAttachment, (attachment) => attachment.post)
+  attachments: PostAttachment[];
 
   @CreateDateColumn()
   createdAt: Date;
