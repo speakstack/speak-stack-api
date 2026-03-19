@@ -1,4 +1,11 @@
-import { Controller, Get, HttpCode, HttpStatus, Param } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+} from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UserLanguageService } from "./user-language.service";
 import { UserLanguageResponseDto } from "./dto/user-language.dto";
@@ -6,7 +13,7 @@ import { Public } from "../common/decorators/public.decorator";
 import { ApiSuccessMessage } from "../common/decorators/api-success-message.decorator";
 
 @ApiTags("User Languages")
-@Controller("users/:username/languages")
+@Controller("users/:userId/languages")
 export class UserLanguagesController {
   constructor(private readonly userLanguageService: UserLanguageService) {}
 
@@ -16,9 +23,9 @@ export class UserLanguagesController {
   @ApiOperation({ summary: "List a user's language relations" })
   @ApiResponse({ status: HttpStatus.OK })
   @ApiSuccessMessage("User languages retrieved successfully")
-  findByUsername(
-    @Param("username") username: string,
+  findByUserId(
+    @Param("userId", ParseUUIDPipe) userId: string,
   ): Promise<UserLanguageResponseDto[]> {
-    return this.userLanguageService.findByUsername(username);
+    return this.userLanguageService.findByUserId(userId);
   }
 }

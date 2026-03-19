@@ -4,9 +4,15 @@ import {
   HttpCode,
   HttpStatus,
   Patch,
+  Post,
+  UploadedFile,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -33,5 +39,26 @@ export class UserController {
     @Body() dto: UpdateProfileDto,
   ): Promise<UserProfileDto> {
     return this.userService.updateProfile(userId, dto);
+  }
+
+  @ApiBearerAuth()
+  @Post("me/avatar")
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor("avatar"))
+  @ApiConsumes("multipart/form-data")
+  @ApiOperation({ summary: "Upload profile avatar" })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: { avatar: { type: "string", format: "binary" } },
+    },
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
+  @ApiSuccessMessage("Avatar uploaded successfully")
+  uploadAvatar(
+    @GetCurrentUser("sub") userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<UserProfileDto> {
+    return this.userService.uploadAvatar(userId, file);
   }
 }
