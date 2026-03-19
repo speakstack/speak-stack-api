@@ -1,7 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, EntityManager, In, Repository } from "typeorm";
+import { randomUUID } from "crypto";
+import * as path from "path";
+import * as fs from "fs/promises";
 import { Post, PostStatus } from "./entities/post.entity";
+import { PostAttachment, AttachmentType } from "./entities/post-attachment.entity";
 import { Answer } from "../answer/entities/answer.entity";
 import { Tag } from "../tag/entities/tag.entity";
 import { User } from "../user/entities/user.entity";
@@ -13,6 +17,7 @@ import { sanitizeContent } from "../common/utils/sanitize";
 import {
   CreatePostDto,
   ListPostsQueryDto,
+  PostAttachmentResponseDto,
   PostDetailResponseDto,
   PostListResponseDto,
   PostResponseDto,
@@ -26,6 +31,25 @@ const EDIT_WINDOW_HOURS = 24;
 const POST_CREATED_REP = 5;
 const POST_DELETED_REP = -10;
 
+const MAX_ATTACHMENTS_PER_POST = 10;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ATTACHMENTS_DIR = path.join(process.cwd(), "uploads", "post-attachments");
+
+const ALLOWED_MIME_TYPES: Record<string, AttachmentType> = {
+  "image/jpeg": AttachmentType.IMAGE,
+  "image/png": AttachmentType.IMAGE,
+  "image/webp": AttachmentType.IMAGE,
+  "image/gif": AttachmentType.IMAGE,
+  "application/pdf": AttachmentType.DOCUMENT,
+  "application/msword": AttachmentType.DOCUMENT,
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": AttachmentType.DOCUMENT,
+  "text/plain": AttachmentType.DOCUMENT,
+  "audio/mpeg": AttachmentType.AUDIO,
+  "audio/wav": AttachmentType.AUDIO,
+  "audio/ogg": AttachmentType.AUDIO,
+  "audio/webm": AttachmentType.AUDIO,
+};
+
 @Injectable()
 export class PostService {
   private readonly logger = new Logger(PostService.name);
@@ -33,6 +57,8 @@ export class PostService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    @InjectRepository(PostAttachment)
+    private readonly attachmentRepository: Repository<PostAttachment>,
     @InjectRepository(Answer)
     private readonly answerRepository: Repository<Answer>,
     @InjectRepository(Tag)
@@ -317,7 +343,7 @@ export class PostService {
   async findPostWithRelations(id: string): Promise<Post> {
     const post = await this.postRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ["author", "tags", "targetLanguage"],
+      relations: ["author", "tags", "targetLanguage", "attachments"],
     });
     if (!post) {
       throw new AppException(ErrorCode.POST_NOT_FOUND);
@@ -389,11 +415,118 @@ export class PostService {
         name: post.targetLanguage.name,
       },
       acceptedAnswerId: post.acceptedAnswerId,
+      attachments: (post.attachments || []).map((a) =>
+        this.toAttachmentResponse(a),
+      ),
       score: post.score,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
+    };
+  }
+
+  async uploadAttachments(
+    userId: string,
+    postId: string,
+    files: Express.Multer.File[],
+  ): Promise<PostAttachmentResponseDto[]> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId, isDeleted: false },
+    });
+    if (!post) {
+      throw new AppException(ErrorCode.POST_NOT_FOUND);
+    }
+    if (post.authorId !== userId) {
+      throw new AppException(ErrorCode.FORBIDDEN);
+    }
+
+    for (const file of files) {
+      if (!ALLOWED_MIME_TYPES[file.mimetype]) {
+        throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        throw new AppException(ErrorCode.FILE_TOO_LARGE);
+      }
+    }
+
+    const existingCount = await this.attachmentRepository.count({
+      where: { postId },
+    });
+    if (existingCount + files.length > MAX_ATTACHMENTS_PER_POST) {
+      throw new AppException(ErrorCode.ATTACHMENT_LIMIT_EXCEEDED);
+    }
+
+    const dir = path.join(ATTACHMENTS_DIR, postId);
+    await fs.mkdir(dir, { recursive: true });
+
+    const attachments: PostAttachment[] = [];
+    for (const file of files) {
+      const ext = path.extname(file.originalname);
+      const filename = `${randomUUID()}${ext}`;
+      const filepath = path.join(dir, filename);
+
+      await fs.writeFile(filepath, file.buffer);
+
+      const attachment = this.attachmentRepository.create({
+        postId,
+        originalName: file.originalname,
+        storagePath: `/uploads/post-attachments/${postId}/${filename}`,
+        mimeType: file.mimetype,
+        size: file.size,
+        type: ALLOWED_MIME_TYPES[file.mimetype],
+      });
+      attachments.push(await this.attachmentRepository.save(attachment));
+    }
+
+    this.logger.log(
+      `${files.length} attachment(s) uploaded for post ${postId} by user ${userId}`,
+    );
+    return attachments.map((a) => this.toAttachmentResponse(a));
+  }
+
+  async deleteAttachment(
+    userId: string,
+    postId: string,
+    attachmentId: string,
+  ): Promise<void> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId, isDeleted: false },
+    });
+    if (!post) {
+      throw new AppException(ErrorCode.POST_NOT_FOUND);
+    }
+    if (post.authorId !== userId) {
+      throw new AppException(ErrorCode.FORBIDDEN);
+    }
+
+    const attachment = await this.attachmentRepository.findOne({
+      where: { id: attachmentId, postId },
+    });
+    if (!attachment) {
+      throw new AppException(ErrorCode.ATTACHMENT_NOT_FOUND);
+    }
+
+    const filepath = path.join(process.cwd(), attachment.storagePath);
+    await fs.unlink(filepath).catch(() => {});
+
+    await this.attachmentRepository.remove(attachment);
+    this.logger.log(
+      `Attachment ${attachmentId} deleted from post ${postId} by user ${userId}`,
+    );
+  }
+
+  private toAttachmentResponse(
+    attachment: PostAttachment,
+  ): PostAttachmentResponseDto {
+    return {
+      id: attachment.id,
+      originalName: attachment.originalName,
+      url: attachment.storagePath,
+      mimeType: attachment.mimeType,
+      size: attachment.size,
+      type: attachment.type,
+      createdAt: attachment.createdAt,
     };
   }
 

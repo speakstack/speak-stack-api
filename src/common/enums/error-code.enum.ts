@@ -133,6 +133,23 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.BAD_REQUEST,
     message: "Maximum 5 can_help languages allowed",
   },
+  // Attachment errors
+  ATTACHMENT_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Attachment not found",
+  },
+  ATTACHMENT_LIMIT_EXCEEDED: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 10 attachments per post",
+  },
+  INVALID_FILE_TYPE: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "File type not allowed",
+  },
+  FILE_TOO_LARGE: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "File size must not exceed 10 MB",
+  },
   // Server errors
   INTERNAL_ERROR: {
     httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -208,6 +225,13 @@ export class ErrorCode {
   static readonly CAN_HELP_LANGUAGE_LIMIT = new ErrorCode(
     "CAN_HELP_LANGUAGE_LIMIT",
   );
+  // Attachment errors
+  static readonly ATTACHMENT_NOT_FOUND = new ErrorCode("ATTACHMENT_NOT_FOUND");
+  static readonly ATTACHMENT_LIMIT_EXCEEDED = new ErrorCode(
+    "ATTACHMENT_LIMIT_EXCEEDED",
+  );
+  static readonly INVALID_FILE_TYPE = new ErrorCode("INVALID_FILE_TYPE");
+  static readonly FILE_TOO_LARGE = new ErrorCode("FILE_TOO_LARGE");
   // Server errors
   static readonly INTERNAL_ERROR = new ErrorCode("INTERNAL_ERROR");
 
