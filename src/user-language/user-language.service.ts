@@ -26,8 +26,11 @@ export class UserLanguageService {
     private readonly languageRepository: Repository<Language>,
   ) {}
 
-  async findByUsername(username: string): Promise<UserLanguageResponseDto[]> {
-    const user = await this.userRepository.findOne({ where: { username } });
+  /**
+   * Retrieve language relations for the given user id.
+   */
+  async findByUserId(userId: string): Promise<UserLanguageResponseDto[]> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new AppException(ErrorCode.USER_NOT_FOUND);
     }
