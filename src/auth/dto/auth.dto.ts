@@ -84,6 +84,9 @@ export class UserProfileDto {
   @ApiProperty({ description: "Account status" })
   isActive: boolean;
 
+  @ApiProperty({ description: "Whether user has completed initial setup" })
+  isSetupComplete: boolean;
+
   @ApiProperty({ description: "Account creation timestamp" })
   createdAt: Date;
 

@@ -6,6 +6,10 @@ import { createHash } from "crypto";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { User } from "../user/entities/user.entity";
+import {
+  UserLanguage,
+  UserLanguageRelation,
+} from "../user-language/entities/user-language.entity";
 import { JwtPayload } from "./types/tokens.type";
 import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto";
 
@@ -26,6 +30,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserLanguage)
+    private readonly userLanguageRepository: Repository<UserLanguage>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -105,7 +111,7 @@ export class AuthService {
     if (!user.isActive) {
       throw new AppException(ErrorCode.USER_INACTIVE);
     }
-    return this.toUserProfileDto(user);
+    return this.toUserProfileDto(user.id, user);
   }
 
   /**
@@ -138,7 +144,13 @@ export class AuthService {
     return tokens;
   }
 
-  private toUserProfileDto(user: User): UserProfileDto {
+  private async toUserProfileDto(
+    userId: string,
+    user: User,
+  ): Promise<UserProfileDto> {
+    const nativeCount = await this.userLanguageRepository.count({
+      where: { userId, relation: UserLanguageRelation.NATIVE },
+    });
     return {
       id: user.id,
       username: user.username,
@@ -146,6 +158,7 @@ export class AuthService {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       isActive: user.isActive,
+      isSetupComplete: nativeCount > 0,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
