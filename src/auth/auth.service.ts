@@ -75,7 +75,6 @@ export class AuthService {
       username: dto.username,
       email: dto.email,
       passwordHash,
-      displayName: dto.displayName,
       isActive: true,
     });
     const savedUser = await this.saveUserOrThrow(user);

@@ -46,9 +46,6 @@ export class UserService {
     if (dto.displayName !== undefined) {
       user.displayName = dto.displayName;
     }
-    if (dto.avatarUrl !== undefined) {
-      user.avatarUrl = dto.avatarUrl;
-    }
 
     const saved = await this.userRepository.save(user);
     return this.toUserProfileDto(saved.id, saved);

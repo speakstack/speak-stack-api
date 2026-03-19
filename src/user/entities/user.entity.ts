@@ -20,8 +20,8 @@ export class User {
   @Column()
   passwordHash: string;
 
-  @Column()
-  displayName: string;
+  @Column({ nullable: true, type: "varchar" })
+  displayName: string | null;
 
   @Column({ nullable: true, type: "varchar" })
   avatarUrl: string | null;
