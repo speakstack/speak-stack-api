@@ -45,6 +45,28 @@ services:
     profiles:
       - dev
 
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: speak-stack-seed
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_HOST: postgres
+    volumes:
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
+    networks:
+      - speak-stack-network
+    command: ["bun", "run", "seed"]
+    restart: "no"
+    profiles:
+      - seed
+
   postgres:
     image: postgres:16-alpine
     container_name: speak-stack-db
