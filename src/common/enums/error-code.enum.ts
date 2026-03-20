@@ -150,6 +150,19 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.BAD_REQUEST,
     message: "File size must not exceed 10 MB",
   },
+  // Grammar check errors
+  GRAMMAR_API_CONFIG_ERROR: {
+    httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
+    message: "Grammar check service is not configured",
+  },
+  GRAMMAR_API_ERROR: {
+    httpStatus: HttpStatus.BAD_GATEWAY,
+    message: "Grammar check service is temporarily unavailable",
+  },
+  GRAMMAR_RATE_LIMITED: {
+    httpStatus: HttpStatus.TOO_MANY_REQUESTS,
+    message: "Grammar check rate limit exceeded, please try again later",
+  },
   // Server errors
   INTERNAL_ERROR: {
     httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -232,6 +245,12 @@ export class ErrorCode {
   );
   static readonly INVALID_FILE_TYPE = new ErrorCode("INVALID_FILE_TYPE");
   static readonly FILE_TOO_LARGE = new ErrorCode("FILE_TOO_LARGE");
+  // Grammar check errors
+  static readonly GRAMMAR_API_CONFIG_ERROR = new ErrorCode(
+    "GRAMMAR_API_CONFIG_ERROR",
+  );
+  static readonly GRAMMAR_API_ERROR = new ErrorCode("GRAMMAR_API_ERROR");
+  static readonly GRAMMAR_RATE_LIMITED = new ErrorCode("GRAMMAR_RATE_LIMITED");
   // Server errors
   static readonly INTERNAL_ERROR = new ErrorCode("INTERNAL_ERROR");
 

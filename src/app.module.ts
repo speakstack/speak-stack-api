@@ -20,6 +20,7 @@ import { Language } from "./language/entities/language.entity";
 import { LanguageModule } from "./language/language.module";
 import { UserLanguage } from "./user-language/entities/user-language.entity";
 import { UserLanguageModule } from "./user-language/user-language.module";
+import { GrammarModule } from "./grammar/grammar.module";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -58,6 +59,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     AnswerModule,
     LanguageModule,
     UserLanguageModule,
+    GrammarModule,
   ],
   providers: [
     {
