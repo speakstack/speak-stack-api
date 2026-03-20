@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsEmail,
   IsNotEmpty,
@@ -42,12 +42,6 @@ export class SignUpDto {
   @MinLength(6, { message: "Password must be at least 6 characters long" })
   password: string;
 
-  @ApiProperty({ description: "Display name" })
-  @IsString({ message: "Display name must be a string" })
-  @IsNotEmpty({ message: "Display name is required" })
-  @MinLength(2, { message: "Display name must be at least 2 characters long" })
-  @MaxLength(50, { message: "Display name must not exceed 50 characters" })
-  displayName: string;
 }
 
 export class RefreshTokenDto {
@@ -75,11 +69,17 @@ export class UserProfileDto {
   @ApiProperty({ description: "Email address" })
   email: string;
 
-  @ApiProperty({ description: "Display name" })
-  displayName: string;
+  @ApiPropertyOptional({ description: "Display name", nullable: true })
+  displayName: string | null;
+
+  @ApiPropertyOptional({ description: "Avatar URL", nullable: true })
+  avatarUrl: string | null;
 
   @ApiProperty({ description: "Account status" })
   isActive: boolean;
+
+  @ApiProperty({ description: "Whether user has completed initial setup" })
+  isSetupComplete: boolean;
 
   @ApiProperty({ description: "Account creation timestamp" })
   createdAt: Date;

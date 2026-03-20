@@ -6,13 +6,17 @@ import { createHash } from "crypto";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { User } from "../user/entities/user.entity";
+import {
+  UserLanguage,
+  UserLanguageRelation,
+} from "../user-language/entities/user-language.entity";
 import { JwtPayload } from "./types/tokens.type";
 import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto";
 
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || "at-secret-key";
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
-const ACCESS_TOKEN_EXPIRY = "1m";
-const REFRESH_TOKEN_EXPIRY = "7d";
+const ACCESS_TOKEN_EXPIRY = "15m";
+const REFRESH_TOKEN_EXPIRY = "30d";
 const BCRYPT_COST = 10;
 
 /**
@@ -26,6 +30,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserLanguage)
+    private readonly userLanguageRepository: Repository<UserLanguage>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -51,7 +57,7 @@ export class AuthService {
     }
     const tokens = await this.generateTokens(user.id);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
-    this.logger.log(`User ${user.email} signed in successfully`);
+    this.logger.log(`User ${user.username} signed in successfully`);
     return tokens;
   }
 
@@ -69,7 +75,6 @@ export class AuthService {
       username: dto.username,
       email: dto.email,
       passwordHash,
-      displayName: dto.displayName,
       isActive: true,
     });
     const savedUser = await this.saveUserOrThrow(user);
@@ -105,7 +110,7 @@ export class AuthService {
     if (!user.isActive) {
       throw new AppException(ErrorCode.USER_INACTIVE);
     }
-    return this.toUserProfileDto(user);
+    return this.toUserProfileDto(user.id, user);
   }
 
   /**
@@ -138,13 +143,21 @@ export class AuthService {
     return tokens;
   }
 
-  private toUserProfileDto(user: User): UserProfileDto {
+  private async toUserProfileDto(
+    userId: string,
+    user: User,
+  ): Promise<UserProfileDto> {
+    const nativeCount = await this.userLanguageRepository.count({
+      where: { userId, relation: UserLanguageRelation.NATIVE },
+    });
     return {
       id: user.id,
       username: user.username,
       email: user.email,
       displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
       isActive: user.isActive,
+      isSetupComplete: nativeCount > 0,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

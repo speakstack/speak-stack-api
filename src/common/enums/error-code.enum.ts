@@ -67,6 +67,111 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.CONFLICT,
     message: "Username is already taken",
   },
+  // Post errors
+  POST_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Post not found",
+  },
+  POST_EDIT_WINDOW_EXPIRED: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "Posts can only be edited within 24 hours of creation",
+  },
+  POST_HAS_ACCEPTED_ANSWER: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "Cannot edit a post that has an accepted answer",
+  },
+  POST_CLOSED: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "This post is closed",
+  },
+  // Answer errors
+  ANSWER_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Answer not found",
+  },
+  SELF_ANSWER_NOT_ALLOWED: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "You cannot answer your own post",
+  },
+  CANNOT_DELETE_ACCEPTED_ANSWER: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message:
+      "Cannot delete an accepted answer. The post author must unaccept it first.",
+  },
+  NO_ACCEPTED_ANSWER: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "This post has no accepted answer",
+  },
+  // Tag errors
+  TAG_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "One or more tags not found",
+  },
+  // Language errors
+  LANGUAGE_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Language not found",
+  },
+  // User language errors
+  USER_LANGUAGE_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "User language relation not found",
+  },
+  USER_LANGUAGE_ALREADY_EXISTS: {
+    httpStatus: HttpStatus.CONFLICT,
+    message: "This language is already added for this user",
+  },
+  NATIVE_LANGUAGE_LIMIT: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 1 native language allowed",
+  },
+  LEARNING_LANGUAGE_LIMIT: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 5 learning languages allowed",
+  },
+  CAN_HELP_LANGUAGE_LIMIT: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 5 can_help languages allowed",
+  },
+  // Attachment errors
+  ATTACHMENT_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Attachment not found",
+  },
+  ATTACHMENT_LIMIT_EXCEEDED: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Maximum 10 attachments per post",
+  },
+  INVALID_FILE_TYPE: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "File type not allowed",
+  },
+  FILE_TOO_LARGE: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "File size must not exceed 10 MB",
+  },
+  // Grammar check errors
+  GRAMMAR_API_CONFIG_ERROR: {
+    httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
+    message: "Grammar check service is not configured",
+  },
+  GRAMMAR_API_ERROR: {
+    httpStatus: HttpStatus.BAD_GATEWAY,
+    message: "Grammar check service is temporarily unavailable",
+  },
+  GRAMMAR_RATE_LIMITED: {
+    httpStatus: HttpStatus.TOO_MANY_REQUESTS,
+    message: "Grammar check rate limit exceeded, please try again later",
+  },
+  // Vote errors
+  SELF_VOTE_NOT_ALLOWED: {
+    httpStatus: HttpStatus.FORBIDDEN,
+    message: "You cannot vote on your own content",
+  },
+  INVALID_VOTE_VALUE: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Vote value must be 1, -1, or 0",
+  },
   // Server errors
   INTERNAL_ERROR: {
     httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -104,6 +209,60 @@ export class ErrorCode {
   static readonly USERNAME_ALREADY_EXISTS = new ErrorCode(
     "USERNAME_ALREADY_EXISTS",
   );
+  // Post errors
+  static readonly POST_NOT_FOUND = new ErrorCode("POST_NOT_FOUND");
+  static readonly POST_EDIT_WINDOW_EXPIRED = new ErrorCode(
+    "POST_EDIT_WINDOW_EXPIRED",
+  );
+  static readonly POST_HAS_ACCEPTED_ANSWER = new ErrorCode(
+    "POST_HAS_ACCEPTED_ANSWER",
+  );
+  static readonly POST_CLOSED = new ErrorCode("POST_CLOSED");
+  // Answer errors
+  static readonly ANSWER_NOT_FOUND = new ErrorCode("ANSWER_NOT_FOUND");
+  static readonly SELF_ANSWER_NOT_ALLOWED = new ErrorCode(
+    "SELF_ANSWER_NOT_ALLOWED",
+  );
+  static readonly CANNOT_DELETE_ACCEPTED_ANSWER = new ErrorCode(
+    "CANNOT_DELETE_ACCEPTED_ANSWER",
+  );
+  static readonly NO_ACCEPTED_ANSWER = new ErrorCode("NO_ACCEPTED_ANSWER");
+  // Tag errors
+  static readonly TAG_NOT_FOUND = new ErrorCode("TAG_NOT_FOUND");
+  // Language errors
+  static readonly LANGUAGE_NOT_FOUND = new ErrorCode("LANGUAGE_NOT_FOUND");
+  // User language errors
+  static readonly USER_LANGUAGE_NOT_FOUND = new ErrorCode(
+    "USER_LANGUAGE_NOT_FOUND",
+  );
+  static readonly USER_LANGUAGE_ALREADY_EXISTS = new ErrorCode(
+    "USER_LANGUAGE_ALREADY_EXISTS",
+  );
+  static readonly NATIVE_LANGUAGE_LIMIT = new ErrorCode(
+    "NATIVE_LANGUAGE_LIMIT",
+  );
+  static readonly LEARNING_LANGUAGE_LIMIT = new ErrorCode(
+    "LEARNING_LANGUAGE_LIMIT",
+  );
+  static readonly CAN_HELP_LANGUAGE_LIMIT = new ErrorCode(
+    "CAN_HELP_LANGUAGE_LIMIT",
+  );
+  // Attachment errors
+  static readonly ATTACHMENT_NOT_FOUND = new ErrorCode("ATTACHMENT_NOT_FOUND");
+  static readonly ATTACHMENT_LIMIT_EXCEEDED = new ErrorCode(
+    "ATTACHMENT_LIMIT_EXCEEDED",
+  );
+  static readonly INVALID_FILE_TYPE = new ErrorCode("INVALID_FILE_TYPE");
+  static readonly FILE_TOO_LARGE = new ErrorCode("FILE_TOO_LARGE");
+  // Grammar check errors
+  static readonly GRAMMAR_API_CONFIG_ERROR = new ErrorCode(
+    "GRAMMAR_API_CONFIG_ERROR",
+  );
+  static readonly GRAMMAR_API_ERROR = new ErrorCode("GRAMMAR_API_ERROR");
+  static readonly GRAMMAR_RATE_LIMITED = new ErrorCode("GRAMMAR_RATE_LIMITED");
+  // Vote errors
+  static readonly SELF_VOTE_NOT_ALLOWED = new ErrorCode("SELF_VOTE_NOT_ALLOWED");
+  static readonly INVALID_VOTE_VALUE = new ErrorCode("INVALID_VOTE_VALUE");
   // Server errors
   static readonly INTERNAL_ERROR = new ErrorCode("INTERNAL_ERROR");
 
