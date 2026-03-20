@@ -25,6 +25,7 @@ import {
   UpdatePostDto,
 } from "./dto/post.dto";
 import { buildPagination } from "../common/dto/pagination.dto";
+import { VoteService } from "../vote/vote.service";
 
 const CONTENT_TRUNCATE_LENGTH = 200;
 const EDIT_WINDOW_HOURS = 24;
@@ -70,6 +71,7 @@ export class PostService {
     @InjectRepository(ReputationHistory)
     private readonly reputationHistoryRepository: Repository<ReputationHistory>,
     private readonly dataSource: DataSource,
+    private readonly voteService: VoteService,
   ) {}
 
   async createPost(
@@ -122,7 +124,7 @@ export class PostService {
     return this.toPostResponse(post);
   }
 
-  async listPosts(query: ListPostsQueryDto): Promise<PostListResponseDto> {
+  async listPosts(query: ListPostsQueryDto, userId?: string): Promise<PostListResponseDto> {
     const page = Math.max(1, query.page || 1);
     const limit = Math.min(50, Math.max(1, query.limit || 20));
     const offset = (page - 1) * limit;
@@ -182,16 +184,20 @@ export class PostService {
 
     const [posts, total] = await qb.skip(offset).take(limit).getManyAndCount();
 
+    const postIds = posts.map((p) => p.id);
+    const voteMap = userId ? await this.voteService.getUserPostVotes(userId, postIds) : {};
+
     return {
-      posts: posts.map((p) => this.toPostResponse(p, true)),
+      posts: posts.map((p) => this.toPostResponse(p, true, voteMap[p.id] ?? 0)),
       pagination: buildPagination(page, limit, total),
     };
   }
 
-  async getPost(id: string): Promise<PostDetailResponseDto> {
+  async getPost(id: string, userId?: string): Promise<PostDetailResponseDto> {
     const post = await this.findPostWithRelations(id);
     this.postRepository.increment({ id }, "viewCount", 1).catch(() => {});
-    return this.toPostDetailResponse(post);
+    const userVote = userId ? await this.voteService.getUserPostVote(userId, id) : 0;
+    return this.toPostDetailResponse(post, userVote);
   }
 
   async updatePost(
@@ -354,6 +360,7 @@ export class PostService {
   private toPostResponse(
     post: Post,
     truncateContent = false,
+    userVote: number = 0,
   ): PostResponseDto {
     return {
       id: post.id,
@@ -381,6 +388,7 @@ export class PostService {
         name: post.targetLanguage.name,
       },
       score: post.score,
+      userVote,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
       createdAt: post.createdAt,
@@ -388,7 +396,7 @@ export class PostService {
     };
   }
 
-  private toPostDetailResponse(post: Post): PostDetailResponseDto {
+  private toPostDetailResponse(post: Post, userVote: number = 0): PostDetailResponseDto {
     return {
       id: post.id,
       type: post.type,
@@ -419,6 +427,7 @@ export class PostService {
         this.toAttachmentResponse(a),
       ),
       score: post.score,
+      userVote,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
       createdAt: post.createdAt,

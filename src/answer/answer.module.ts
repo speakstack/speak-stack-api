@@ -7,6 +7,7 @@ import { AnswerService } from "./answer.service";
 import { PostModule } from "../post/post.module";
 import { UserModule } from "../user/user.module";
 import { ReputationModule } from "../reputation/reputation.module";
+import { VoteModule } from "../vote/vote.module";
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ReputationModule } from "../reputation/reputation.module";
     PostModule,
     UserModule,
     ReputationModule,
+    VoteModule,
   ],
   controllers: [PostAnswersController, AnswerController],
   providers: [AnswerService],
