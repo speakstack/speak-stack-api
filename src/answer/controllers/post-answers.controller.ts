@@ -56,8 +56,9 @@ export class PostAnswersController {
   listAnswers(
     @Param("postId", ParseUUIDPipe) postId: string,
     @Query() query: ListAnswersQueryDto,
+    @GetCurrentUser("sub") userId: string,
   ): Promise<AnswerListResponseDto> {
-    return this.answerService.listAnswers(postId, query);
+    return this.answerService.listAnswers(postId, query, userId);
   }
 
   @ApiBearerAuth()

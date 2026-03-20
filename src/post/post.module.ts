@@ -10,6 +10,7 @@ import { UserModule } from "../user/user.module";
 import { TagModule } from "../tag/tag.module";
 import { LanguageModule } from "../language/language.module";
 import { ReputationModule } from "../reputation/reputation.module";
+import { VoteModule } from "../vote/vote.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ReputationModule } from "../reputation/reputation.module";
     TagModule,
     LanguageModule,
     ReputationModule,
+    VoteModule,
   ],
   controllers: [PostController],
   providers: [PostService],

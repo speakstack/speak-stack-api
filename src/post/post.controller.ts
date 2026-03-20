@@ -60,8 +60,11 @@ export class PostController {
   @ApiOperation({ summary: "List posts with filters and pagination" })
   @ApiResponse({ status: HttpStatus.OK, type: PostListResponseDto })
   @ApiSuccessMessage("Posts retrieved successfully")
-  listPosts(@Query() query: ListPostsQueryDto): Promise<PostListResponseDto> {
-    return this.postService.listPosts(query);
+  listPosts(
+    @Query() query: ListPostsQueryDto,
+    @GetCurrentUser("sub") userId: string,
+  ): Promise<PostListResponseDto> {
+    return this.postService.listPosts(query, userId);
   }
 
   @Public()
@@ -72,8 +75,9 @@ export class PostController {
   @ApiSuccessMessage("Post retrieved successfully")
   getPost(
     @Param("id", ParseUUIDPipe) id: string,
+    @GetCurrentUser("sub") userId: string,
   ): Promise<PostDetailResponseDto> {
-    return this.postService.getPost(id);
+    return this.postService.getPost(id, userId);
   }
 
   @ApiBearerAuth()

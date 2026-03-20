@@ -19,6 +19,7 @@ import {
 import { PostDetailResponseDto } from "../post/dto/post.dto";
 import { PostService } from "../post/post.service";
 import { buildPagination } from "../common/dto/pagination.dto";
+import { VoteService } from "../vote/vote.service";
 
 const ANSWER_CREATED_REP = 10;
 const ANSWER_ACCEPTED_REP = 15;
@@ -38,6 +39,7 @@ export class AnswerService {
     private readonly reputationHistoryRepository: Repository<ReputationHistory>,
     private readonly dataSource: DataSource,
     private readonly postService: PostService,
+    private readonly voteService: VoteService,
   ) {}
 
   async createAnswer(
@@ -102,6 +104,7 @@ export class AnswerService {
   async listAnswers(
     postId: string,
     query: ListAnswersQueryDto,
+    userId?: string,
   ): Promise<AnswerListResponseDto> {
     const post = await this.postRepository.findOne({
       where: { id: postId, isDeleted: false },
@@ -131,8 +134,12 @@ export class AnswerService {
       .skip(offset)
       .take(limit)
       .getManyAndCount();
+    const answerIds = answers.map((a) => a.id);
+    const voteMap = userId
+      ? await this.voteService.getUserAnswerVotes(userId, answerIds)
+      : {};
     return {
-      answers: answers.map((a) => this.toAnswerResponse(a)),
+      answers: answers.map((a) => this.toAnswerResponse(a, voteMap[a.id] ?? 0)),
       pagination: buildPagination(page, limit, total),
     };
   }
@@ -365,7 +372,7 @@ export class AnswerService {
     return this.postService.getPost(postId);
   }
 
-  private toAnswerResponse(answer: Answer): AnswerResponseDto {
+  private toAnswerResponse(answer: Answer, userVote: number = 0): AnswerResponseDto {
     return {
       id: answer.id,
       content: answer.content,
@@ -377,6 +384,7 @@ export class AnswerService {
       },
       isAccepted: answer.isAccepted,
       score: answer.score,
+      userVote,
       createdAt: answer.createdAt,
       updatedAt: answer.updatedAt,
     };

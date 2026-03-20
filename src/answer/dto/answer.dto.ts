@@ -66,6 +66,12 @@ export class AnswerResponseDto {
   @ApiProperty() author: AnswerAuthorDto;
   @ApiProperty() isAccepted: boolean;
   @ApiProperty() score: number;
+  @ApiProperty({
+    description: "Current user vote: 1 (upvoted), -1 (downvoted), 0 (no vote)",
+    enum: [1, -1, 0],
+    default: 0,
+  })
+  userVote: number;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 }

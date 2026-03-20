@@ -190,6 +190,12 @@ export class PostResponseDto {
   @ApiProperty() score: number;
   @ApiProperty() answerCount: number;
   @ApiProperty() viewCount: number;
+  @ApiProperty({
+    description: "Current user vote: 1 (upvoted), -1 (downvoted), 0 (no vote)",
+    enum: [1, -1, 0],
+    default: 0,
+  })
+  userVote: number;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 }
@@ -218,6 +224,12 @@ export class PostDetailResponseDto {
   @ApiProperty() score: number;
   @ApiProperty() answerCount: number;
   @ApiProperty() viewCount: number;
+  @ApiProperty({
+    description: "Current user vote: 1 (upvoted), -1 (downvoted), 0 (no vote)",
+    enum: [1, -1, 0],
+    default: 0,
+  })
+  userVote: number;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 }
