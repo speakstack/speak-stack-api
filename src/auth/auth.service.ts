@@ -2,7 +2,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { QueryFailedError, Repository } from "typeorm";
-import { createHash } from "crypto";
+import { OAuth2Client } from "google-auth-library";
+import { createHash, randomBytes } from "crypto";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { User } from "../user/entities/user.entity";
@@ -18,6 +19,7 @@ const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
 const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY = "30d";
 const BCRYPT_COST = 10;
+const GOOGLE_CLIENT_ID = Bun.env.GOOGLE_CLIENT_ID;
 
 /**
  * Authentication service implementing JWT token rotation logic.
@@ -47,6 +49,9 @@ export class AuthService {
     }
     if (!user.isActive) {
       throw new AppException(ErrorCode.USER_INACTIVE);
+    }
+    if (!user.passwordHash) {
+      throw new AppException(ErrorCode.PASSWORD_NOT_SET);
     }
     const isPasswordValid = await Bun.password.verify(
       dto.password,
@@ -82,6 +87,96 @@ export class AuthService {
     await this.updateRefreshTokenHash(savedUser.id, tokens.refreshToken);
     this.logger.log(`User ${savedUser.email} registered successfully`);
     return tokens;
+  }
+
+  /**
+   * Authenticates or registers a user via Google ID token.
+   * Handles three cases: existing Google user, auto-link by email, new sign-up.
+   * @param idToken - Google ID token from client SDK
+   * @returns Access and refresh tokens
+   */
+  async googleSignIn(idToken: string): Promise<TokensDto> {
+    if (!GOOGLE_CLIENT_ID) {
+      throw new AppException(ErrorCode.GOOGLE_AUTH_CONFIG_ERROR);
+    }
+
+    const payload = await this.verifyGoogleIdToken(idToken);
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) {
+      throw new AppException(ErrorCode.GOOGLE_AUTH_FAILED);
+    }
+
+    // Case 1: Existing user with this googleId
+    let user = await this.userRepository.findOne({ where: { googleId } });
+    if (user) {
+      if (!user.isActive) {
+        throw new AppException(ErrorCode.USER_INACTIVE);
+      }
+      const tokens = await this.generateTokens(user.id);
+      await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
+      this.logger.log(`Google sign-in for existing user ${user.email}`);
+      return tokens;
+    }
+
+    // Case 2: Auto-link by email
+    user = await this.userRepository.findOne({ where: { email } });
+    if (user) {
+      if (!user.isActive) {
+        throw new AppException(ErrorCode.USER_INACTIVE);
+      }
+      user.googleId = googleId;
+      if (!user.avatarUrl && picture) {
+        user.avatarUrl = picture;
+      }
+      if (!user.displayName && name) {
+        user.displayName = name;
+      }
+      await this.userRepository.save(user);
+      const tokens = await this.generateTokens(user.id);
+      await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
+      this.logger.log(`Google account linked to existing user ${user.email}`);
+      return tokens;
+    }
+
+    // Case 3: New user sign-up
+    const tempUsername = `user_${randomBytes(4).toString("hex")}`;
+    const newUser = this.userRepository.create({
+      googleId,
+      email,
+      username: tempUsername,
+      displayName: name || null,
+      avatarUrl: picture || null,
+      passwordHash: null,
+      hasUsernameSet: false,
+      isActive: true,
+    });
+    const savedUser = await this.saveUserOrThrow(newUser);
+    const tokens = await this.generateTokens(savedUser.id);
+    await this.updateRefreshTokenHash(savedUser.id, tokens.refreshToken);
+    this.logger.log(`New user registered via Google: ${savedUser.email}`);
+    return tokens;
+  }
+
+  /**
+   * Sets a password for a Google-only user.
+   * @param userId - The user ID from JWT payload
+   * @param password - The new password
+   */
+  async setPassword(userId: string, password: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new AppException(ErrorCode.USER_NOT_FOUND);
+    }
+    if (user.passwordHash) {
+      throw new AppException(ErrorCode.PASSWORD_ALREADY_SET);
+    }
+    const passwordHash = await Bun.password.hash(password, {
+      algorithm: "bcrypt",
+      cost: BCRYPT_COST,
+    });
+    await this.userRepository.update(userId, { passwordHash });
+    this.logger.log(`Password set for user ${user.email}`);
   }
 
   /**
@@ -157,7 +252,10 @@ export class AuthService {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       isActive: user.isActive,
-      isSetupComplete: nativeCount > 0,
+      hasNativeLanguage: nativeCount > 0,
+      hasGoogleLinked: user.googleId !== null,
+      hasPassword: user.passwordHash !== null,
+      hasUsernameSet: user.hasUsernameSet,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -175,8 +273,40 @@ export class AuthService {
         if (detail?.includes("email")) {
           throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
+        if (detail?.includes("google")) {
+          throw new AppException(ErrorCode.GOOGLE_AUTH_FAILED);
+        }
       }
       throw error;
+    }
+  }
+
+  private async verifyGoogleIdToken(
+    idToken: string,
+  ): Promise<{ sub: string; email: string; email_verified: boolean; name?: string; picture?: string }> {
+    try {
+      const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email_verified) {
+        throw new AppException(ErrorCode.GOOGLE_AUTH_FAILED);
+      }
+      return {
+        sub: payload.sub,
+        email: payload.email!,
+        email_verified: payload.email_verified,
+        name: payload.name,
+        picture: payload.picture,
+      };
+    } catch (error) {
+      if (error instanceof AppException) {
+        throw error;
+      }
+      this.logger.warn(`Google ID token verification failed: ${error}`);
+      throw new AppException(ErrorCode.GOOGLE_AUTH_FAILED);
     }
   }
 

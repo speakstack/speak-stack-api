@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { QueryFailedError, Repository } from "typeorm";
 import { randomUUID } from "crypto";
 import * as path from "path";
 import * as fs from "fs/promises";
@@ -43,12 +43,30 @@ export class UserService {
   ): Promise<UserProfileDto> {
     const user = await this.findActiveUser(userId);
 
+    if (dto.username !== undefined) {
+      if (user.hasUsernameSet) {
+        throw new AppException(ErrorCode.USERNAME_ALREADY_SET);
+      }
+      user.username = dto.username;
+      user.hasUsernameSet = true;
+    }
+
     if (dto.displayName !== undefined) {
       user.displayName = dto.displayName;
     }
 
-    const saved = await this.userRepository.save(user);
-    return this.toUserProfileDto(saved.id, saved);
+    try {
+      const saved = await this.userRepository.save(user);
+      return this.toUserProfileDto(saved.id, saved);
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        const detail = (error as QueryFailedError & { detail?: string }).detail;
+        if (detail?.includes("username")) {
+          throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
+        }
+      }
+      throw error;
+    }
   }
 
   async uploadAvatar(
@@ -121,7 +139,10 @@ export class UserService {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       isActive: user.isActive,
-      isSetupComplete: nativeCount > 0,
+      hasNativeLanguage: nativeCount > 0,
+      hasGoogleLinked: user.googleId !== null,
+      hasPassword: user.passwordHash !== null,
+      hasUsernameSet: user.hasUsernameSet,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
