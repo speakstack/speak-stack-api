@@ -17,8 +17,11 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  passwordHash: string;
+  @Column({ nullable: true, type: "varchar", unique: true })
+  googleId: string | null;
+
+  @Column({ nullable: true, type: "varchar" })
+  passwordHash: string | null;
 
   @Column({ nullable: true, type: "varchar" })
   displayName: string | null;
@@ -28,6 +31,9 @@ export class User {
 
   @Column({ default: "user" })
   role: string;
+
+  @Column({ default: true })
+  hasUsernameSet: boolean;
 
   @Column({ nullable: true, type: "varchar" })
   refreshTokenHash: string | null;

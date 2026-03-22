@@ -17,6 +17,8 @@ import {
   RefreshTokenDto,
   SignInDto,
   SignUpDto,
+  GoogleSignInDto,
+  SetPasswordDto,
   TokensDto,
   UserProfileDto,
 } from "./dto/auth.dto";
@@ -52,6 +54,16 @@ export class AuthController {
     return this.authService.signIn(dto);
   }
 
+  @Public()
+  @Post("google")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Sign in or sign up with Google ID token" })
+  @ApiResponse({ status: HttpStatus.OK, type: TokensDto })
+  @ApiSuccessMessage("Google authentication successful")
+  googleSignIn(@Body() dto: GoogleSignInDto): Promise<TokensDto> {
+    return this.authService.googleSignIn(dto.idToken);
+  }
+
   @ApiBearerAuth()
   @Post("sign-out")
   @HttpCode(HttpStatus.OK)
@@ -60,6 +72,19 @@ export class AuthController {
   @ApiSuccessMessage("User signed out successfully")
   signOut(@GetCurrentUser("sub") userId: string): Promise<void> {
     return this.authService.logout(userId);
+  }
+
+  @ApiBearerAuth()
+  @Post("set-password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set password for Google-only users" })
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiSuccessMessage("Password set successfully")
+  setPassword(
+    @GetCurrentUser("sub") userId: string,
+    @Body() dto: SetPasswordDto,
+  ): Promise<void> {
+    return this.authService.setPassword(userId, dto.password);
   }
 
   @Public()
