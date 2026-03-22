@@ -26,8 +26,8 @@ export class SignUpDto {
   @IsNotEmpty({ message: "Username is required" })
   @MinLength(3, { message: "Username must be at least 3 characters long" })
   @MaxLength(20, { message: "Username must not exceed 20 characters" })
-  @Matches(/^[a-zA-Z0-9_]+$/, {
-    message: "Username can only contain letters, numbers, and underscores",
+  @Matches(/^[a-z0-9_]+$/, {
+    message: "Username can only contain lowercase letters, numbers, and underscores",
   })
   username: string;
 
@@ -79,11 +79,35 @@ export class UserProfileDto {
   isActive: boolean;
 
   @ApiProperty({ description: "Whether user has completed initial setup" })
-  isSetupComplete: boolean;
+  hasNativeLanguage: boolean;
+
+  @ApiProperty({ description: "Whether the user has a linked Google account" })
+  hasGoogleLinked: boolean;
+
+  @ApiProperty({ description: "Whether the user has a password set" })
+  hasPassword: boolean;
+
+  @ApiProperty({ description: "Whether the user has chosen a username" })
+  hasUsernameSet: boolean;
 
   @ApiProperty({ description: "Account creation timestamp" })
   createdAt: Date;
 
   @ApiProperty({ description: "Last update timestamp" })
   updatedAt: Date;
+}
+
+export class GoogleSignInDto {
+  @ApiProperty({ description: "Google ID token from client SDK" })
+  @IsString({ message: "ID token must be a string" })
+  @IsNotEmpty({ message: "ID token is required" })
+  idToken: string;
+}
+
+export class SetPasswordDto {
+  @ApiProperty({ description: "New password" })
+  @IsString({ message: "Password must be a string" })
+  @IsNotEmpty({ message: "Password is required" })
+  @MinLength(6, { message: "Password must be at least 6 characters long" })
+  password: string;
 }
