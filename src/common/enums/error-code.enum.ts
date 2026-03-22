@@ -40,6 +40,22 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.UNAUTHORIZED,
     message: "Token has expired",
   },
+  GOOGLE_AUTH_FAILED: {
+    httpStatus: HttpStatus.UNAUTHORIZED,
+    message: "Google authentication failed",
+  },
+  GOOGLE_AUTH_CONFIG_ERROR: {
+    httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
+    message: "Google authentication is not configured",
+  },
+  PASSWORD_NOT_SET: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "No password set. Sign in with Google or set a password first",
+  },
+  PASSWORD_ALREADY_SET: {
+    httpStatus: HttpStatus.CONFLICT,
+    message: "Password is already set",
+  },
   // Authorization errors
   FORBIDDEN: {
     httpStatus: HttpStatus.FORBIDDEN,
@@ -66,6 +82,10 @@ const ERROR_CODE_DEFINITIONS = {
   USERNAME_ALREADY_EXISTS: {
     httpStatus: HttpStatus.CONFLICT,
     message: "Username is already taken",
+  },
+  USERNAME_ALREADY_SET: {
+    httpStatus: HttpStatus.CONFLICT,
+    message: "Username has already been set and cannot be changed",
   },
   // Post errors
   POST_NOT_FOUND: {
@@ -196,6 +216,10 @@ export class ErrorCode {
     "REFRESH_TOKEN_EXPIRED",
   );
   static readonly TOKEN_EXPIRED = new ErrorCode("TOKEN_EXPIRED");
+  static readonly GOOGLE_AUTH_FAILED = new ErrorCode("GOOGLE_AUTH_FAILED");
+  static readonly GOOGLE_AUTH_CONFIG_ERROR = new ErrorCode("GOOGLE_AUTH_CONFIG_ERROR");
+  static readonly PASSWORD_NOT_SET = new ErrorCode("PASSWORD_NOT_SET");
+  static readonly PASSWORD_ALREADY_SET = new ErrorCode("PASSWORD_ALREADY_SET");
   // Authorization errors
   static readonly FORBIDDEN = new ErrorCode("FORBIDDEN");
   static readonly USER_INACTIVE = new ErrorCode("USER_INACTIVE");
@@ -209,6 +233,7 @@ export class ErrorCode {
   static readonly USERNAME_ALREADY_EXISTS = new ErrorCode(
     "USERNAME_ALREADY_EXISTS",
   );
+  static readonly USERNAME_ALREADY_SET = new ErrorCode("USERNAME_ALREADY_SET");
   // Post errors
   static readonly POST_NOT_FOUND = new ErrorCode("POST_NOT_FOUND");
   static readonly POST_EDIT_WINDOW_EXPIRED = new ErrorCode(
