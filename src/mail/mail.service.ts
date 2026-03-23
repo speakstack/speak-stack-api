@@ -4,7 +4,6 @@ import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 
 const RESEND_API_KEY = Bun.env.RESEND_API_KEY;
-const MAIL_FROM = Bun.env.MAIL_FROM || "onboarding@resend.dev";
 
 @Injectable()
 export class MailService {
@@ -18,7 +17,6 @@ export class MailService {
   async sendOtp(email: string, otp: string): Promise<void> {
     try {
       await this.resend.emails.send({
-        from: MAIL_FROM,
         to: email,
         template: {
           id: "otp-verification",
