@@ -1,9 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-import { QueryFailedError, Repository } from "typeorm";
+import { DataSource, EntityManager, MoreThan, QueryFailedError, Repository } from "typeorm";
 import { OAuth2Client } from "google-auth-library";
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes, randomInt } from "crypto";
+import { MailService } from "../mail/mail.service";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { User } from "../user/entities/user.entity";
@@ -11,6 +12,7 @@ import {
   UserLanguage,
   UserLanguageRelation,
 } from "../user-language/entities/user-language.entity";
+import { EmailVerification } from "./entities/email-verification.entity";
 import { JwtPayload } from "./types/tokens.type";
 import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto";
 
@@ -20,6 +22,14 @@ const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY = "30d";
 const BCRYPT_COST = 10;
 const GOOGLE_CLIENT_ID = Bun.env.GOOGLE_CLIENT_ID;
+
+const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+const OTP_COOLDOWN_MS = 60 * 1000; // 60 seconds
+const OTP_MAX_SEND_PER_WINDOW = 3;
+const OTP_SEND_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const OTP_MAX_ATTEMPTS = 3;
+const OTP_BLOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+const OTP_VERIFIED_WINDOW_MS = 10 * 60 * 1000; // 10 minutes to complete sign-up after verify
 
 /**
  * Authentication service implementing JWT token rotation logic.
@@ -34,7 +44,11 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserLanguage)
     private readonly userLanguageRepository: Repository<UserLanguage>,
+    @InjectRepository(EmailVerification)
+    private readonly emailVerificationRepository: Repository<EmailVerification>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -76,17 +90,187 @@ export class AuthService {
       algorithm: "bcrypt",
       cost: BCRYPT_COST,
     });
-    const user = this.userRepository.create({
-      username: dto.username,
-      email: dto.email,
-      passwordHash,
-      isActive: true,
+
+    // Use transaction with pessimistic lock to prevent double-consumption
+    const result = await this.dataSource.transaction(async (manager) => {
+      // Lock verification record to prevent concurrent sign-ups
+      const verification = await manager.findOne(EmailVerification, {
+        where: { id: dto.verificationId },
+        lock: { mode: "pessimistic_write" },
+      });
+      if (!verification || !verification.isVerified || verification.usedAt) {
+        throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+      }
+      if (
+        !verification.verifiedAt ||
+        verification.verifiedAt.getTime() + OTP_VERIFIED_WINDOW_MS < Date.now()
+      ) {
+        throw new AppException(ErrorCode.INVALID_VERIFICATION);
+      }
+
+      const email = verification.email;
+
+      // Check if this is an existing Google user without password
+      const existingUser = await manager.findOne(User, {
+        where: { email },
+      });
+
+      if (existingUser && existingUser.passwordHash) {
+        throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+      }
+
+      let user: User;
+
+      if (existingUser) {
+        // Existing Google user — set password
+        existingUser.passwordHash = passwordHash;
+        user = await manager.save(User, existingUser);
+        this.logger.log(`Password set for existing Google user ${email}`);
+      } else {
+        // New user — require username
+        if (!dto.username) {
+          throw new AppException(ErrorCode.VALIDATION_ERROR, {
+            username: "Username is required for new accounts",
+          });
+        }
+        const newUser = manager.create(User, {
+          username: dto.username,
+          email,
+          passwordHash,
+          isActive: true,
+        });
+        user = await this.saveUserOrThrowWithManager(manager, newUser);
+        this.logger.log(`New user registered: ${email}`);
+      }
+
+      // Mark verification as used
+      verification.usedAt = new Date();
+      await manager.save(EmailVerification, verification);
+
+      return user;
     });
-    const savedUser = await this.saveUserOrThrow(user);
-    const tokens = await this.generateTokens(savedUser.id);
-    await this.updateRefreshTokenHash(savedUser.id, tokens.refreshToken);
-    this.logger.log(`User ${savedUser.email} registered successfully`);
+
+    const tokens = await this.generateTokens(result.id);
+    await this.updateRefreshTokenHash(result.id, tokens.refreshToken);
     return tokens;
+  }
+
+  async sendOtp(email: string): Promise<{ verificationId: string }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if email already has an account with password
+    const existingUser = await this.userRepository.findOne({
+      where: { email: normalizedEmail },
+    });
+    if (existingUser && existingUser.passwordHash) {
+      throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+    }
+
+    const now = new Date();
+
+    // Check 30-min block after max failed attempts
+    const blockedRecord = await this.emailVerificationRepository.findOne({
+      where: {
+        email: normalizedEmail,
+        attempts: MoreThan(OTP_MAX_ATTEMPTS - 1),
+        createdAt: MoreThan(new Date(now.getTime() - OTP_BLOCK_DURATION_MS)),
+      },
+    });
+    if (blockedRecord) {
+      throw new AppException(ErrorCode.OTP_MAX_ATTEMPTS_EXCEEDED);
+    }
+
+    // Check cooldown (60s between resends)
+    const lastRecord = await this.emailVerificationRepository.findOne({
+      where: {
+        email: normalizedEmail,
+        createdAt: MoreThan(new Date(now.getTime() - OTP_COOLDOWN_MS)),
+      },
+      order: { createdAt: "DESC" },
+    });
+    if (lastRecord) {
+      const retryAfter = Math.ceil(
+        (lastRecord.createdAt.getTime() + OTP_COOLDOWN_MS - now.getTime()) / 1000,
+      );
+      throw new AppException(ErrorCode.OTP_COOLDOWN, {
+        retryAfter: String(retryAfter),
+      });
+    }
+
+    // Check max sends per window (3 per 10 min)
+    const recentCount = await this.emailVerificationRepository.count({
+      where: {
+        email: normalizedEmail,
+        createdAt: MoreThan(new Date(now.getTime() - OTP_SEND_WINDOW_MS)),
+      },
+    });
+    if (recentCount >= OTP_MAX_SEND_PER_WINDOW) {
+      throw new AppException(ErrorCode.OTP_RATE_LIMITED);
+    }
+
+    // Generate OTP and save record
+    const otp = String(randomInt(100000, 1000000));
+    const otpHash = createHash("sha256").update(otp).digest("hex");
+    const verification = this.emailVerificationRepository.create({
+      email: normalizedEmail,
+      otpHash,
+      expiresAt: new Date(now.getTime() + OTP_EXPIRY_MS),
+    });
+    const savedVerification = await this.emailVerificationRepository.save(verification);
+
+    // Send email (delete record on failure)
+    try {
+      await this.mailService.sendOtp(normalizedEmail, otp);
+    } catch (error) {
+      await this.emailVerificationRepository.delete(savedVerification.id);
+      throw error;
+    }
+
+    this.logger.log(`OTP sent to ${normalizedEmail}`);
+    return { verificationId: savedVerification.id };
+  }
+
+  async verifyOtp(
+    verificationId: string,
+    otp: string,
+  ): Promise<{ verificationId: string; isExistingUser: boolean }> {
+    const record = await this.emailVerificationRepository.findOne({
+      where: { id: verificationId },
+    });
+    if (!record || record.usedAt) {
+      throw new AppException(ErrorCode.INVALID_VERIFICATION);
+    }
+
+    // Idempotent: if already verified and not used, return success
+    if (record.isVerified) {
+      const isExistingUser = await this.isExistingGoogleUserWithoutPassword(record.email);
+      return { verificationId: record.id, isExistingUser };
+    }
+
+    if (record.expiresAt < new Date()) {
+      throw new AppException(ErrorCode.OTP_EXPIRED);
+    }
+    if (record.attempts >= OTP_MAX_ATTEMPTS) {
+      throw new AppException(ErrorCode.OTP_MAX_ATTEMPTS_EXCEEDED);
+    }
+
+    const otpHash = createHash("sha256").update(otp).digest("hex");
+    if (otpHash !== record.otpHash) {
+      record.attempts += 1;
+      await this.emailVerificationRepository.save(record);
+      const attemptsRemaining = OTP_MAX_ATTEMPTS - record.attempts;
+      throw new AppException(ErrorCode.OTP_INVALID, {
+        attemptsRemaining: String(attemptsRemaining),
+      });
+    }
+
+    record.isVerified = true;
+    record.verifiedAt = new Date();
+    await this.emailVerificationRepository.save(record);
+
+    const isExistingUser = await this.isExistingGoogleUserWithoutPassword(record.email);
+    this.logger.log(`OTP verified for ${record.email}`);
+    return { verificationId: record.id, isExistingUser };
   }
 
   /**
@@ -279,6 +463,31 @@ export class AuthService {
       }
       throw error;
     }
+  }
+
+  private async saveUserOrThrowWithManager(
+    manager: EntityManager,
+    user: User,
+  ): Promise<User> {
+    try {
+      return await manager.save(User, user);
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        const detail = (error as QueryFailedError & { detail?: string }).detail;
+        if (detail?.includes("username")) {
+          throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
+        }
+        if (detail?.includes("email")) {
+          throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async isExistingGoogleUserWithoutPassword(email: string): Promise<boolean> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    return !!user && !!user.googleId && !user.passwordHash;
   }
 
   private async verifyGoogleIdToken(
