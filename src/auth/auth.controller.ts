@@ -15,12 +15,16 @@ import {
 import { AuthService } from "./auth.service";
 import {
   RefreshTokenDto,
+  SendOtpDto,
+  SendOtpResponseDto,
   SignInDto,
   SignUpDto,
   GoogleSignInDto,
   SetPasswordDto,
   TokensDto,
   UserProfileDto,
+  VerifyOtpDto,
+  VerifyOtpResponseDto,
 } from "./dto/auth.dto";
 import { Public } from "../common/decorators/public.decorator";
 import { GetCurrentUser } from "../common/decorators/get-current-user.decorator";
@@ -33,6 +37,26 @@ import { ApiSuccessMessage } from "../common/decorators/api-success-message.deco
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post("send-otp")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Send OTP verification code to email" })
+  @ApiResponse({ status: HttpStatus.OK, type: SendOtpResponseDto })
+  @ApiSuccessMessage("Verification code sent successfully")
+  sendOtp(@Body() dto: SendOtpDto): Promise<SendOtpResponseDto> {
+    return this.authService.sendOtp(dto.email);
+  }
+
+  @Public()
+  @Post("verify-otp")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Verify OTP code" })
+  @ApiResponse({ status: HttpStatus.OK, type: VerifyOtpResponseDto })
+  @ApiSuccessMessage("Email verified successfully")
+  verifyOtp(@Body() dto: VerifyOtpDto): Promise<VerifyOtpResponseDto> {
+    return this.authService.verifyOtp(dto.verificationId, dto.otp);
+  }
 
   @Public()
   @Post("sign-up")

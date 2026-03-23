@@ -1,17 +1,18 @@
 import { Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { AtStrategy } from "./strategies/at.strategy";
 import { UserModule } from "../user/user.module";
+import { MailModule } from "../mail/mail.module";
+import { EmailVerification } from "./entities/email-verification.entity";
 
-/**
- * Authentication module providing JWT-based authentication
- * with access token strategy and refresh token rotation.
- */
 @Module({
   imports: [
     UserModule,
+    MailModule,
+    TypeOrmModule.forFeature([EmailVerification]),
     JwtModule.register({
       global: true,
     }),

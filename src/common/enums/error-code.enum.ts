@@ -56,6 +56,39 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.CONFLICT,
     message: "Password is already set",
   },
+  // OTP verification errors
+  OTP_COOLDOWN: {
+    httpStatus: HttpStatus.TOO_MANY_REQUESTS,
+    message: "Please wait before requesting a new code",
+  },
+  OTP_RATE_LIMITED: {
+    httpStatus: HttpStatus.TOO_MANY_REQUESTS,
+    message: "Too many OTP requests, try again later",
+  },
+  OTP_EXPIRED: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Verification code has expired",
+  },
+  OTP_INVALID: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Invalid verification code",
+  },
+  OTP_MAX_ATTEMPTS_EXCEEDED: {
+    httpStatus: HttpStatus.TOO_MANY_REQUESTS,
+    message: "Too many failed attempts, try again later",
+  },
+  INVALID_VERIFICATION: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Invalid or expired verification",
+  },
+  EMAIL_NOT_VERIFIED: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Email has not been verified",
+  },
+  MAIL_SERVICE_ERROR: {
+    httpStatus: HttpStatus.BAD_GATEWAY,
+    message: "Email service is temporarily unavailable",
+  },
   // Authorization errors
   FORBIDDEN: {
     httpStatus: HttpStatus.FORBIDDEN,
@@ -220,6 +253,15 @@ export class ErrorCode {
   static readonly GOOGLE_AUTH_CONFIG_ERROR = new ErrorCode("GOOGLE_AUTH_CONFIG_ERROR");
   static readonly PASSWORD_NOT_SET = new ErrorCode("PASSWORD_NOT_SET");
   static readonly PASSWORD_ALREADY_SET = new ErrorCode("PASSWORD_ALREADY_SET");
+  // OTP verification errors
+  static readonly OTP_COOLDOWN = new ErrorCode("OTP_COOLDOWN");
+  static readonly OTP_RATE_LIMITED = new ErrorCode("OTP_RATE_LIMITED");
+  static readonly OTP_EXPIRED = new ErrorCode("OTP_EXPIRED");
+  static readonly OTP_INVALID = new ErrorCode("OTP_INVALID");
+  static readonly OTP_MAX_ATTEMPTS_EXCEEDED = new ErrorCode("OTP_MAX_ATTEMPTS_EXCEEDED");
+  static readonly INVALID_VERIFICATION = new ErrorCode("INVALID_VERIFICATION");
+  static readonly EMAIL_NOT_VERIFIED = new ErrorCode("EMAIL_NOT_VERIFIED");
+  static readonly MAIL_SERVICE_ERROR = new ErrorCode("MAIL_SERVICE_ERROR");
   // Authorization errors
   static readonly FORBIDDEN = new ErrorCode("FORBIDDEN");
   static readonly USER_INACTIVE = new ErrorCode("USER_INACTIVE");
