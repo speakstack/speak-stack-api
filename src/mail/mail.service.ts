@@ -20,16 +20,10 @@ export class MailService {
       await this.resend.emails.send({
         from: MAIL_FROM,
         to: email,
-        subject: "Your verification code",
-        html: `
-          <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto;">
-            <h2>Verification Code</h2>
-            <p>Your verification code is:</p>
-            <p style="font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; padding: 16px; background: #f4f4f4; border-radius: 8px;">${otp}</p>
-            <p>This code expires in 5 minutes.</p>
-            <p style="color: #666; font-size: 12px;">If you didn't request this code, you can safely ignore this email.</p>
-          </div>
-        `,
+        template: {
+          id: "otp-verification",
+          variables: { OTP: otp },
+        },
       });
       this.logger.log(`OTP email sent to ${email}`);
     } catch (error) {
