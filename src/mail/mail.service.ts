@@ -20,7 +20,11 @@ export class MailService {
         to: email,
         template: {
           id: "otp-verification",
-          variables: { OTP: otp },
+          variables: {
+            OTP: otp,
+            USER_EMAIL: email,
+            YEAR: new Date().getFullYear().toString(),
+          },
         },
       });
       this.logger.log(`OTP email sent to ${email}`);
