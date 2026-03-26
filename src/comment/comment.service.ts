@@ -28,10 +28,6 @@ export class CommentService {
     private readonly commentRepository: Repository<Comment>,
     @InjectRepository(Answer)
     private readonly answerRepository: Repository<Answer>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(ReputationHistory)
-    private readonly reputationHistoryRepository: Repository<ReputationHistory>,
     private readonly dataSource: DataSource,
   ) {}
 
