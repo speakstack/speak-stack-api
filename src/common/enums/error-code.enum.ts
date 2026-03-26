@@ -155,6 +155,11 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.BAD_REQUEST,
     message: "This post has no accepted answer",
   },
+  // Comment errors
+  COMMENT_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Comment not found",
+  },
   // Tag errors
   TAG_NOT_FOUND: {
     httpStatus: HttpStatus.NOT_FOUND,
@@ -294,6 +299,8 @@ export class ErrorCode {
     "CANNOT_DELETE_ACCEPTED_ANSWER",
   );
   static readonly NO_ACCEPTED_ANSWER = new ErrorCode("NO_ACCEPTED_ANSWER");
+  // Comment errors
+  static readonly COMMENT_NOT_FOUND = new ErrorCode("COMMENT_NOT_FOUND");
   // Tag errors
   static readonly TAG_NOT_FOUND = new ErrorCode("TAG_NOT_FOUND");
   // Language errors
