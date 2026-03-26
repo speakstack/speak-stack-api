@@ -385,6 +385,7 @@ export class AnswerService {
       isAccepted: answer.isAccepted,
       score: answer.score,
       userVote,
+      commentCount: answer.commentCount,
       createdAt: answer.createdAt,
       updatedAt: answer.updatedAt,
     };
