@@ -26,6 +26,7 @@ import { AnswerVote } from "./vote/entities/answer-vote.entity";
 import { VoteModule } from "./vote/vote.module";
 import { EmailVerification } from "./auth/entities/email-verification.entity";
 import { Comment } from "./comment/entities/comment.entity";
+import { CommentModule } from "./comment/comment.module";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -63,6 +64,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     PostModule,
     AnswerModule,
     VoteModule,
+    CommentModule,
     LanguageModule,
     UserLanguageModule,
     GrammarModule,
