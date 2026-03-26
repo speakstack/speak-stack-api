@@ -9,6 +9,7 @@ import { ErrorCode } from "../../common/enums/error-code.enum";
 /**
  * Access Token Guard registered globally.
  * Validates JWT access tokens for all routes except those marked with @Public().
+ * For public routes, attempts to extract user from token without failing if absent.
  */
 @Injectable()
 export class AtGuard extends AuthGuard("jwt") {
@@ -24,12 +25,26 @@ export class AtGuard extends AuthGuard("jwt") {
       ctx.getClass(),
     ]);
     if (isPublic) {
-      return true;
+      const req = ctx.switchToHttp().getRequest();
+      const authHeader = req.headers?.authorization;
+      if (!authHeader?.startsWith("Bearer ")) {
+        return true;
+      }
+      return Promise.resolve(super.canActivate(ctx))
+        .then(() => true)
+        .catch(() => true);
     }
     return super.canActivate(ctx);
   }
 
-  handleRequest<T>(err: Error | null, user: T): T {
+  handleRequest<T>(err: Error | null, user: T, _info: unknown, context: ExecutionContext): T {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return user;
+    }
     if (err || !user) {
       throw new AppException(ErrorCode.UNAUTHORIZED);
     }
