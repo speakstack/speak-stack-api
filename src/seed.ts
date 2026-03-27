@@ -8,6 +8,7 @@ import { Post, PostType, PostStatus } from "./post/entities/post.entity";
 import { Answer } from "./answer/entities/answer.entity";
 import { PostVote } from "./vote/entities/post-vote.entity";
 import { AnswerVote } from "./vote/entities/answer-vote.entity";
+import { Comment } from "./comment/entities/comment.entity";
 import { ReputationHistory } from "./reputation/entities/reputation-history.entity";
 import {
   UserLanguage,
@@ -1220,6 +1221,275 @@ const REPUTATION_EVENTS: ReputationSeed[] = [
   { username: "marie_dupont", event: "answer_upvoted", change: 10, relatedAnswerIndex: 12 },
 ];
 
+// ─── Comments ────────────────────────────────────────────────────────────────
+
+interface CommentSeed {
+  answerIndex: number; // index into ANSWERS array
+  authorUsername: string;
+  content: string;
+}
+
+const COMMENTS: CommentSeed[] = [
+  // Answer 0: yuki_tanaka's は vs が answer
+  {
+    answerIndex: 0,
+    authorUsername: "mike_johnson",
+    content: "This is incredibly helpful! The 'Speaking of X' test for は is something I've never heard before. Just tried it on a few sentences and it clicked immediately.",
+  },
+  {
+    answerIndex: 0,
+    authorUsername: "wei_chen",
+    content: "Great explanation! One small addition: が is also used in subordinate clauses even when the subject is known, e.g. 私が作った料理 (the dish that I made).",
+  },
+  {
+    answerIndex: 0,
+    authorUsername: "soo_jin",
+    content: "As a Korean speaker, this maps really well to 은/는 vs 이/가. The topic vs subject distinction is almost identical!",
+  },
+
+  // Answer 1: wei_chen's は vs が follow-up
+  {
+    answerIndex: 1,
+    authorUsername: "mike_johnson",
+    content: "The old vs new information framing is exactly what I needed. Combined with Yuki's answer, I think I finally get it. ありがとう！",
+  },
+
+  // Answer 2: mike_johnson's phrasal verbs answer
+  {
+    answerIndex: 2,
+    authorUsername: "thanh_pham",
+    content: "Thank you! I printed this list out and stuck it on my wall. Already using 'figure out' and 'run out of' naturally now 😄",
+  },
+  {
+    answerIndex: 2,
+    authorUsername: "carlos_garcia",
+    content: "For Spanish speakers: 'give up' = rendirse, 'find out' = descubrir, 'figure out' = resolver. Knowing the translation helps me remember them!",
+  },
+  {
+    answerIndex: 2,
+    authorUsername: "raj_patel",
+    content: "Is there a difference between 'look for' and 'search for'? I keep mixing them up.",
+  },
+
+  // Answer 3: soo_jin's additional phrasal verbs
+  {
+    answerIndex: 3,
+    authorUsername: "mike_johnson",
+    content: "Great point about the pronoun separation rule! That trips up so many learners. 'Turn it off' not 'Turn off it' — such a subtle but important rule.",
+  },
+
+  // Answer 4: yuki_tanaka's "I'm looking forward to it"
+  {
+    answerIndex: 4,
+    authorUsername: "wei_chen",
+    content: "In Chinese we'd just say 期待 (qīdài) regardless of formality level. Japanese having so many levels always impresses me.",
+  },
+  {
+    answerIndex: 4,
+    authorUsername: "mike_johnson",
+    content: "I used 楽しみにしております at work today and my Japanese colleagues looked impressed. Thank you Yuki!",
+  },
+
+  // Answer 5: soo_jin's "no worries" in Korean
+  {
+    answerIndex: 5,
+    authorUsername: "raj_patel",
+    content: "ㄱㅊ in text messages is so cool! Are there other common abbreviations like this in Korean texting?",
+  },
+  {
+    answerIndex: 5,
+    authorUsername: "admin",
+    content: "Adding that 천만에요 (cheonmaneyo) also works as 'you're welcome / don't mention it' in more formal situations.",
+  },
+
+  // Answer 6: mike_johnson's email correction
+  {
+    answerIndex: 6,
+    authorUsername: "yuki_tanaka",
+    content: "This is so helpful! I've been overthinking my emails to professors. I'll try the more casual style from now on.",
+  },
+  {
+    answerIndex: 6,
+    authorUsername: "anna_schmidt",
+    content: "In Germany, emails to professors are much more formal. We always use 'Sehr geehrter Herr/Frau Professor...' — interesting cultural difference!",
+  },
+
+  // Answer 7: soo_jin's cultural perspective on email
+  {
+    answerIndex: 7,
+    authorUsername: "yuki_tanaka",
+    content: "Exactly! In Japan we'd never write a short email to a professor. It feels rude even though I know it's normal in the US.",
+  },
+
+  // Answer 8: admin's hobby paragraph correction
+  {
+    answerIndex: 8,
+    authorUsername: "sakura_ito",
+    content: "Thank you so much for the detailed corrections! The 'interested vs interesting' mistake — I make this one all the time 😅",
+  },
+  {
+    answerIndex: 8,
+    authorUsername: "carlos_garcia",
+    content: "I have the same problem with -ed vs -ing adjectives! 'I am bored' vs 'I am boring' — very different meanings 😂",
+  },
+
+  // Answer 11: mod_linh's Vietnamese tones answer
+  {
+    answerIndex: 11,
+    authorUsername: "admin",
+    content: "As someone learning Vietnamese, the throat tension tip for ngã is a game changer. I've been struggling with this for months!",
+  },
+  {
+    answerIndex: 11,
+    authorUsername: "thanh_pham",
+    content: "Chị Linh giải thích hay quá! The regional difference point is important — Northern and Southern Vietnamese really do sound different on these tones.",
+  },
+
+  // Answer 12: thanh_pham's Vietnamese tones practical advice
+  {
+    answerIndex: 12,
+    authorUsername: "admin",
+    content: "The minimal pairs practice is great advice. Do you have a list of common hỏi/ngã pairs for beginners?",
+  },
+
+  // Answer 13: admin's Present Perfect vs Simple Past
+  {
+    answerIndex: 13,
+    authorUsername: "carlos_garcia",
+    content: "Finally! The 'connection to NOW' rule makes so much sense. In Spanish we have a similar distinction but it's used differently by region.",
+  },
+
+  // Answer 14: carlos_garcia's Spanish correction
+  {
+    answerIndex: 14,
+    authorUsername: "marie_dupont",
+    content: "Merci Carlos! The subjunctive corrections are exactly what I needed. French and Spanish subjunctive are similar but the triggers are slightly different.",
+  },
+
+  // Answer 9: mike_johnson's "make" vs "do" answer
+  {
+    answerIndex: 9,
+    authorUsername: "wei_chen",
+    content: "In Chinese we just use 做 (zuò) for both 'make' and 'do'. This distinction is so confusing! The 'creating vs performing' rule helps a lot though.",
+  },
+  {
+    answerIndex: 9,
+    authorUsername: "thanh_pham",
+    content: "Vietnamese also doesn't have this distinction — we use 'làm' for everything. I always say 'do a mistake' and people correct me 😅",
+  },
+  {
+    answerIndex: 9,
+    authorUsername: "anna_schmidt",
+    content: "German has 'machen' and 'tun' which roughly map to 'make' and 'do', but the collocations don't line up at all. You just have to memorize them.",
+  },
+
+  // Answer 10: yuki_tanaka's "long time no see" in Japanese
+  {
+    answerIndex: 10,
+    authorUsername: "wei_chen",
+    content: "The fun fact about 'long time no see' coming from Chinese 好久不見 is actually debated among linguists, but I like the theory! 好久不見 is literally 'long time not see'.",
+  },
+  {
+    answerIndex: 10,
+    authorUsername: "soo_jin",
+    content: "In Korean it's 오랜만이야 (casual) or 오랜만이에요 (polite). Similar to Japanese, we also have different levels but not as many formality options.",
+  },
+  {
+    answerIndex: 10,
+    authorUsername: "mod_linh",
+    content: "Vietnamese: 'lâu rồi không gặp!' — literally also 'long time not meet'. It seems like many Asian languages have a similar structure for this phrase!",
+  },
+
+  // Answer 11 (index): mike_johnson's Japanese diary correction follow-up
+  {
+    answerIndex: 16,
+    authorUsername: "soo_jin",
+    content: "The i-adjective vs na-adjective pattern chart is super clear! I wish my textbook had explained it this simply. Saving this.",
+  },
+
+  // Answer 12: marie_dupont's French subjunctive
+  {
+    answerIndex: 12,
+    authorUsername: "anna_schmidt",
+    content: "German doesn't really use subjunctive this way — we have Konjunktiv II but it's mainly for hypotheticals. French subjunctive triggers are so specific!",
+  },
+  {
+    answerIndex: 12,
+    authorUsername: "carlos_garcia",
+    content: "The subjunctive triggers in Spanish are almost identical to French! 'querer que', 'esperar que', 'dudar que' — all need subjunctive too.",
+  },
+
+  // Answer 13: admin's Present Perfect vs Simple Past
+  {
+    answerIndex: 13,
+    authorUsername: "yuki_tanaka",
+    content: "Japanese doesn't have this distinction at all — た form covers both. This is why it's so confusing for us. The 'specific time = simple past' rule is very helpful!",
+  },
+  {
+    answerIndex: 13,
+    authorUsername: "thanh_pham",
+    content: "Vietnamese has no tenses at all, we use time markers like 'đã' (past) and 'sẽ' (future). English tenses feel like learning a whole new way of thinking.",
+  },
+
+  // Answer 14: carlos_garcia's Spanish weekend correction
+  {
+    answerIndex: 14,
+    authorUsername: "anna_schmidt",
+    content: "The tip about dropping subject pronouns is so important! I keep saying 'yo quiero' when 'quiero' is enough. Old habits from German where you always need the subject.",
+  },
+
+  // Answer 15: mike_johnson's English listening tips
+  {
+    answerIndex: 15,
+    authorUsername: "thanh_pham",
+    content: "The tip about watching Netflix with ENGLISH subtitles (not Vietnamese) is something I wish someone told me years ago! I've been doing it wrong this whole time.",
+  },
+  {
+    answerIndex: 15,
+    authorUsername: "sakura_ito",
+    content: "Shadow speaking really works! I've been doing it with TED talks for 3 months and my listening comprehension improved dramatically.",
+  },
+  {
+    answerIndex: 15,
+    authorUsername: "raj_patel",
+    content: "Rachel's English YouTube channel is amazing! Her mouth position videos helped me understand American vowels so much better.",
+  },
+
+  // Answer 17: yuki_tanaka's kanji methods (post 34)
+  {
+    answerIndex: 17,
+    authorUsername: "mike_johnson",
+    content: "Interesting to hear how Japanese natives learn kanji in school. The stroke order emphasis makes so much more sense now! How many kanji do Japanese students learn by the end of high school?",
+  },
+  {
+    answerIndex: 17,
+    authorUsername: "raj_patel",
+    content: "5 new kanji per day sounds manageable. Do you recommend learning them in JLPT order or in the school order that Japanese kids follow?",
+  },
+  {
+    answerIndex: 17,
+    authorUsername: "mod_linh",
+    content: "As someone just starting Japanese, knowing that radicals are key from the very beginning is really helpful advice. Any good radical learning resources?",
+  },
+
+  // Answer 18: wei_chen's perspective on kanji
+  {
+    answerIndex: 18,
+    authorUsername: "mike_johnson",
+    content: "Having Chinese knowledge of hanzi must be such a huge advantage for Japanese kanji! Do you find the meanings are usually the same or quite different?",
+  },
+  {
+    answerIndex: 18,
+    authorUsername: "soo_jin",
+    content: "Similar advantage for Korean speakers with hanja! Though we don't use them daily anymore, knowing them helps a lot with vocabulary.",
+  },
+  {
+    answerIndex: 18,
+    authorUsername: "admin",
+    content: "The Anki + NHK Easy News combo sounds like a great practical approach. I'll try the Nihongo Shark deck — thanks for the specific recommendation!",
+  },
+];
+
 // ─── Seed Function ───────────────────────────────────────────────────────────
 
 async function seed(): Promise<void> {
@@ -1246,6 +1516,7 @@ async function seed(): Promise<void> {
   const postVoteRepo = ds.getRepository(PostVote);
   const answerVoteRepo = ds.getRepository(AnswerVote);
   const reputationRepo = ds.getRepository(ReputationHistory);
+  const commentRepo = ds.getRepository(Comment);
   const userLanguageRepo = ds.getRepository(UserLanguage);
 
   // ── 1. Languages ────────────────────────────────────────────────────────
@@ -1519,7 +1790,37 @@ async function seed(): Promise<void> {
   }
   console.log(`Votes: ${votesCreated} created\n`);
 
-  // ── 8. Reputation History ───────────────────────────────────────────────
+  // ── 8. Comments ──────────────────────────────────────────────────────────
+  console.log("── Seeding Comments ──");
+  let commentsCreated = 0;
+  for (const c of COMMENTS) {
+    const answer = answerEntities[c.answerIndex];
+    if (!answer) continue;
+    const author = userMap.get(c.authorUsername);
+    if (!author) continue;
+
+    const existing = await commentRepo.findOne({
+      where: { answerId: answer.id, userId: author.id, content: c.content },
+    });
+    if (existing) continue;
+
+    await commentRepo.save(
+      commentRepo.create({
+        answerId: answer.id,
+        userId: author.id,
+        content: c.content,
+      }),
+    );
+
+    // Update answer's commentCount
+    await answerRepo.increment({ id: answer.id }, "commentCount", 1);
+
+    console.log(`  + comment on answer by ${c.authorUsername}`);
+    commentsCreated++;
+  }
+  console.log(`Comments: ${commentsCreated} created\n`);
+
+  // ── 9. Reputation History ───────────────────────────────────────────────
   console.log("── Seeding Reputation History ──");
   let repCreated = 0;
   for (const r of REPUTATION_EVENTS) {
@@ -1555,6 +1856,7 @@ async function seed(): Promise<void> {
   console.log(`  Posts:            ${postEntities.filter(Boolean).length}`);
   console.log(`  Answers:          ${answerEntities.filter(Boolean).length}`);
   console.log(`  Votes:            ${votesCreated}`);
+  console.log(`  Comments:         ${commentsCreated}`);
   console.log(`  Reputation:       ${repCreated}`);
   console.log("═══════════════════════════════════");
 
