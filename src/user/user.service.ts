@@ -15,6 +15,7 @@ import { UserProfileDto } from "../auth/dto/auth.dto";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { LevelService } from "../level/level.service";
+import { BadgeService } from "../badge/badge.service";
 
 const AVATAR_SIZE = 256;
 const AVATAR_QUALITY = 80;
@@ -37,6 +38,7 @@ export class UserService {
     @InjectRepository(UserLanguage)
     private readonly userLanguageRepository: Repository<UserLanguage>,
     private readonly levelService: LevelService,
+    private readonly badgeService: BadgeService,
   ) {}
 
   async updateProfile(
@@ -136,6 +138,7 @@ export class UserService {
     });
     const { current: level, next: nextLevel } =
       await this.levelService.getLevelForReputation(user.reputation);
+    const userBadges = await this.badgeService.getUserBadges(userId);
     return {
       id: user.id,
       username: user.username,
@@ -152,6 +155,13 @@ export class UserService {
       nextLevel: nextLevel
         ? { id: nextLevel.id, name: nextLevel.name, minReputation: nextLevel.minReputation }
         : null,
+      badges: userBadges.map((ub) => ({
+        id: ub.badge.id,
+        name: ub.badge.name,
+        slug: ub.badge.slug,
+        description: ub.badge.description,
+        awardedAt: ub.awardedAt,
+      })),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

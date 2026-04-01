@@ -16,6 +16,7 @@ import { EmailVerification } from "./entities/email-verification.entity";
 import { JwtPayload } from "./types/tokens.type";
 import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto";
 import { LevelService } from "../level/level.service";
+import { BadgeService } from "../badge/badge.service";
 
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || "at-secret-key";
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
@@ -51,6 +52,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
     private readonly levelService: LevelService,
+    private readonly badgeService: BadgeService,
   ) {}
 
   /**
@@ -433,6 +435,7 @@ export class AuthService {
     });
     const { current: level, next: nextLevel } =
       await this.levelService.getLevelForReputation(user.reputation);
+    const userBadges = await this.badgeService.getUserBadges(userId);
     return {
       id: user.id,
       username: user.username,
@@ -449,6 +452,13 @@ export class AuthService {
       nextLevel: nextLevel
         ? { id: nextLevel.id, name: nextLevel.name, minReputation: nextLevel.minReputation }
         : null,
+      badges: userBadges.map((ub) => ({
+        id: ub.badge.id,
+        name: ub.badge.name,
+        slug: ub.badge.slug,
+        description: ub.badge.description,
+        awardedAt: ub.awardedAt,
+      })),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

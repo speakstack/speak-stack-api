@@ -100,6 +100,9 @@ export class UserProfileDto {
   @ApiPropertyOptional({ description: "Next level threshold (null if at max level)", nullable: true })
   nextLevel: { id: number; name: string; minReputation: number } | null;
 
+  @ApiProperty({ description: "Badges earned by the user" })
+  badges: { id: string; name: string; slug: string; description: string; awardedAt: Date }[];
+
   @ApiProperty({ description: "Account creation timestamp" })
   createdAt: Date;
 

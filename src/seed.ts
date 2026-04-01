@@ -1,4 +1,5 @@
 import { DataSource } from "typeorm";
+import { Badge, BadgeTriggerType } from "./badge/entities/badge.entity";
 import { Language } from "./language/entities/language.entity";
 import { Level } from "./level/entities/level.entity";
 import { Tag } from "./tag/entities/tag.entity";
@@ -55,6 +56,20 @@ const LEVELS: { name: string; minReputation: number }[] = [
   { name: "Intermediate", minReputation: 500 },
   { name: "Advanced", minReputation: 1500 },
   { name: "Expert", minReputation: 5000 },
+];
+
+// ─── Badges ──────────────────────────────────────────────────────────────────
+
+const BADGES: { name: string; slug: string; description: string; triggerType: BadgeTriggerType; threshold: number }[] = [
+  { name: "First Post", slug: "first-post", description: "Created your first post", triggerType: BadgeTriggerType.FIRST_POST, threshold: 1 },
+  { name: "First Answer", slug: "first-answer", description: "Wrote your first answer", triggerType: BadgeTriggerType.FIRST_ANSWER, threshold: 1 },
+  { name: "First Comment", slug: "first-comment", description: "Left your first comment", triggerType: BadgeTriggerType.FIRST_COMMENT, threshold: 1 },
+  { name: "Prolific Poster", slug: "prolific-poster", description: "Created 10 posts", triggerType: BadgeTriggerType.POST_COUNT, threshold: 10 },
+  { name: "Helpful Hand", slug: "helpful-hand", description: "Wrote 10 answers", triggerType: BadgeTriggerType.ANSWER_COUNT, threshold: 10 },
+  { name: "Problem Solver", slug: "problem-solver", description: "Had 5 answers accepted", triggerType: BadgeTriggerType.ACCEPTED_ANSWER_COUNT, threshold: 5 },
+  { name: "Rising Star", slug: "rising-star", description: "Received 10 upvotes", triggerType: BadgeTriggerType.UPVOTES_RECEIVED, threshold: 10 },
+  { name: "Popular Voice", slug: "popular-voice", description: "Received 50 upvotes", triggerType: BadgeTriggerType.UPVOTES_RECEIVED, threshold: 50 },
+  { name: "Legend", slug: "legend", description: "Received 100 upvotes", triggerType: BadgeTriggerType.UPVOTES_RECEIVED, threshold: 100 },
 ];
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -1259,6 +1274,7 @@ async function seed(): Promise<void> {
   const reputationRepo = ds.getRepository(ReputationHistory);
   const userLanguageRepo = ds.getRepository(UserLanguage);
   const levelRepo = ds.getRepository(Level);
+  const badgeRepo = ds.getRepository(Badge);
 
   // ── Seeding Levels ─────────────────────────────────────────────────────
   console.log("── Seeding Levels ──");
@@ -1269,6 +1285,16 @@ async function seed(): Promise<void> {
     console.log(`  + level: ${lvl.name} (${lvl.minReputation}+ rep)`);
   }
   console.log(`Levels seeded\n`);
+
+  // ── Seeding Badges ─────────────────────────────────────────────────────
+  console.log("── Seeding Badges ──");
+  for (const b of BADGES) {
+    const existing = await badgeRepo.findOne({ where: { slug: b.slug } });
+    if (existing) continue;
+    await badgeRepo.save(badgeRepo.create(b));
+    console.log(`  + badge: ${b.name}`);
+  }
+  console.log(`Badges seeded\n`);
 
   // ── 1. Languages ────────────────────────────────────────────────────────
   console.log("── Seeding Languages ──");

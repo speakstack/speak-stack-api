@@ -53,6 +53,12 @@ export class User {
   @Column({ default: 0 })
   acceptedAnswersCount: number;
 
+  @Column({ default: 0 })
+  upvotesReceived: number;
+
+  @Column({ default: 0 })
+  commentsCount: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -11,6 +11,7 @@ import { TagModule } from "../tag/tag.module";
 import { LanguageModule } from "../language/language.module";
 import { ReputationModule } from "../reputation/reputation.module";
 import { VoteModule } from "../vote/vote.module";
+import { BadgeModule } from "../badge/badge.module";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { VoteModule } from "../vote/vote.module";
     LanguageModule,
     ReputationModule,
     VoteModule,
+    BadgeModule,
   ],
   controllers: [PostController],
   providers: [PostService],

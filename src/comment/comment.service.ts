@@ -16,6 +16,8 @@ import {
   UpdateCommentDto,
 } from "./dto/comment.dto";
 import { buildPagination } from "../common/dto/pagination.dto";
+import { BadgeService } from "../badge/badge.service";
+import { BadgeTriggerType } from "../badge/entities/badge.entity";
 
 const COMMENT_CREATED_REP = 2;
 
@@ -29,6 +31,7 @@ export class CommentService {
     @InjectRepository(Answer)
     private readonly answerRepository: Repository<Answer>,
     private readonly dataSource: DataSource,
+    private readonly badgeService: BadgeService,
   ) {}
 
   async createComment(
@@ -60,6 +63,7 @@ export class CommentService {
         "reputation",
         COMMENT_CREATED_REP,
       );
+      await manager.increment(User, { id: userId }, "commentsCount", 1);
 
       await manager.save(ReputationHistory, {
         userId,
@@ -68,6 +72,12 @@ export class CommentService {
         relatedAnswerId: answerId,
         relatedCommentId: savedComment.id,
       });
+
+      await this.badgeService.checkAndAwardBadges(
+        userId,
+        [BadgeTriggerType.FIRST_COMMENT],
+        manager,
+      );
 
       return savedComment;
     });
@@ -158,6 +168,12 @@ export class CommentService {
         deletedAt: new Date(),
       });
       await manager.decrement(Answer, { id: answerId }, "commentCount", 1);
+      await manager
+        .createQueryBuilder()
+        .update(User)
+        .set({ commentsCount: () => "GREATEST(0, comments_count - 1)" })
+        .where("id = :id", { id: comment.userId })
+        .execute();
       await manager
         .createQueryBuilder()
         .update(User)

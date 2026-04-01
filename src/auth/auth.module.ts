@@ -8,12 +8,14 @@ import { UserModule } from "../user/user.module";
 import { MailModule } from "../mail/mail.module";
 import { EmailVerification } from "./entities/email-verification.entity";
 import { LevelModule } from "../level/level.module";
+import { BadgeModule } from "../badge/badge.module";
 
 @Module({
   imports: [
     UserModule,
     MailModule,
     LevelModule,
+    BadgeModule,
     TypeOrmModule.forFeature([EmailVerification]),
     JwtModule.register({
       global: true,

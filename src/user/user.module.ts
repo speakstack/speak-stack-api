@@ -5,9 +5,10 @@ import { UserLanguage } from "../user-language/entities/user-language.entity";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 import { LevelModule } from "../level/level.module";
+import { BadgeModule } from "../badge/badge.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserLanguage]), LevelModule],
+  imports: [TypeOrmModule.forFeature([User, UserLanguage]), LevelModule, BadgeModule],
   controllers: [UserController],
   providers: [UserService],
   exports: [TypeOrmModule],
