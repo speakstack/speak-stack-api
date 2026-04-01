@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { ReputationHistory } from '../reputation/entities/reputation-history.entity';
 import { Post } from '../post/entities/post.entity';
@@ -142,32 +142,23 @@ export class LeaderboardService {
       .createQueryBuilder('rh')
       .select('rh.userId', 'userId')
       .addSelect('SUM(rh.change)', 'score')
+      .addSelect('u.username', 'username')
+      .addSelect('u.displayName', 'displayName')
+      .addSelect('u.avatarUrl', 'avatarUrl')
+      .innerJoin(User, 'u', 'u.id = rh.userId AND u.isActive = true')
       .where('rh.createdAt >= :start', { start })
       .andWhere('rh.createdAt < :end', { end })
-      .groupBy('rh.userId')
-      .orderBy('score', 'DESC')
+      .groupBy('rh.userId, u.username, u.displayName, u.avatarUrl')
+      .orderBy('SUM(rh.change)', 'DESC')
       .limit(limit)
-      .getRawMany<{ userId: string; score: string }>();
+      .getRawMany<{ userId: string; score: string; username: string; displayName: string | null; avatarUrl: string | null }>();
 
-    if (rows.length === 0) return [];
-
-    const users = await this.userRepo.find({
-      where: { id: In(rows.map(r => r.userId)), isActive: true },
-      select: ['id', 'username', 'displayName', 'avatarUrl'],
-    });
-    const userMap = new Map(users.map(u => [u.id, u]));
-
-    return rows
-      .filter(r => userMap.has(r.userId))
-      .map(r => {
-        const u = userMap.get(r.userId)!;
-        return {
-          userId: u.id,
-          username: u.username,
-          displayName: u.displayName,
-          avatarUrl: u.avatarUrl,
-          score: Number(r.score),
-        };
-      });
+    return rows.map(r => ({
+      userId: r.userId,
+      username: r.username,
+      displayName: r.displayName,
+      avatarUrl: r.avatarUrl,
+      score: Number(r.score),
+    }));
   }
 }
