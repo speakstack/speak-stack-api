@@ -37,6 +37,9 @@ export class LeaderboardService {
   ) {}
 
   async getLeaderboard(period: LeaderboardPeriod): Promise<LeaderboardResponseDto> {
+    const validPeriods: LeaderboardPeriod[] = ['all_time', 'weekly', 'monthly'];
+    if (!validPeriods.includes(period)) period = 'all_time';
+
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
