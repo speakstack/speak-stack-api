@@ -7,11 +7,13 @@ import { AtStrategy } from "./strategies/at.strategy";
 import { UserModule } from "../user/user.module";
 import { MailModule } from "../mail/mail.module";
 import { EmailVerification } from "./entities/email-verification.entity";
+import { BadgeModule } from "../badge/badge.module";
 
 @Module({
   imports: [
     UserModule,
     MailModule,
+    BadgeModule,
     TypeOrmModule.forFeature([EmailVerification]),
     JwtModule.register({
       global: true,

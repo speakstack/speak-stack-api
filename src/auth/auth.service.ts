@@ -15,6 +15,7 @@ import {
 import { EmailVerification } from "./entities/email-verification.entity";
 import { JwtPayload } from "./types/tokens.type";
 import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto";
+import { BadgeService } from "../badge/badge.service";
 
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || "at-secret-key";
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
@@ -49,6 +50,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
+    private readonly badgeService: BadgeService,
   ) {}
 
   /**
@@ -429,6 +431,7 @@ export class AuthService {
     const nativeCount = await this.userLanguageRepository.count({
       where: { userId, relation: UserLanguageRelation.NATIVE },
     });
+    const userBadges = await this.badgeService.getUserBadges(userId);
     return {
       id: user.id,
       username: user.username,
@@ -440,6 +443,13 @@ export class AuthService {
       hasGoogleLinked: user.googleId !== null,
       hasPassword: user.passwordHash !== null,
       hasUsernameSet: user.hasUsernameSet,
+      badges: userBadges.map((ub) => ({
+        id: ub.badge.id,
+        name: ub.badge.name,
+        slug: ub.badge.slug,
+        description: ub.badge.description,
+        awardedAt: ub.awardedAt,
+      })),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Patch,
@@ -22,11 +23,16 @@ import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { UserProfileDto } from "../auth/dto/auth.dto";
 import { GetCurrentUser } from "../common/decorators/get-current-user.decorator";
 import { ApiSuccessMessage } from "../common/decorators/api-success-message.decorator";
+import { BadgeService } from "../badge/badge.service";
+import { UserBadge } from "../badge/entities/user-badge.entity";
 
 @ApiTags("Users")
 @Controller("users")
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly badgeService: BadgeService,
+  ) {}
 
   @ApiBearerAuth()
   @Patch("me")
@@ -64,5 +70,16 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UserProfileDto> {
     return this.userService.uploadAvatar(userId, file);
+  }
+
+  @ApiBearerAuth()
+  @Get("me/badges")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get current user badges" })
+  @ApiResponse({ status: HttpStatus.OK })
+  getUserBadges(
+    @GetCurrentUser("sub") userId: string,
+  ): Promise<UserBadge[]> {
+    return this.badgeService.getUserBadges(userId);
   }
 }

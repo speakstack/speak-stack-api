@@ -91,6 +91,9 @@ export class UserProfileDto {
   @ApiProperty({ description: "Whether the user has chosen a username" })
   hasUsernameSet: boolean;
 
+  @ApiProperty({ description: "Badges earned by the user" })
+  badges: { id: string; name: string; slug: string; description: string; awardedAt: Date }[];
+
   @ApiProperty({ description: "Account creation timestamp" })
   createdAt: Date;
 
