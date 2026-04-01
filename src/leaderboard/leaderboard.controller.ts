@@ -2,7 +2,7 @@ import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LeaderboardService } from './leaderboard.service';
 import {
-  LeaderboardPeriod,
+  type LeaderboardPeriod,
   LeaderboardResponseDto,
   TagChampionsResponseDto,
 } from './dto/leaderboard.dto';
