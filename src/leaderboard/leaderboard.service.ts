@@ -66,8 +66,72 @@ export class LeaderboardService {
   }
 
   async getTagChampions(): Promise<TagChampionsResponseDto> {
-    // Placeholder — implemented in Task 4
-    return { data: [] };
+    const tags = await this.tagRepo.find({
+      order: { postsCount: 'DESC' },
+      take: 5,
+      select: ['id', 'name', 'slug', 'color'],
+    });
+
+    const champions = await Promise.all(tags.map(tag => this.getTagChampion(tag.id)));
+
+    return {
+      data: tags.map((tag, i) => ({
+        tagId: tag.id,
+        tagName: tag.name,
+        tagSlug: tag.slug,
+        tagColor: tag.color,
+        champion: champions[i],
+      })),
+    };
+  }
+
+  private async getTagChampion(tagId: string): Promise<TagChampionUserDto | null> {
+    const [postRows, answerRows] = await Promise.all([
+      this.postRepo
+        .createQueryBuilder('p')
+        .select('p.authorId', 'userId')
+        .addSelect('COUNT(p.id)', 'cnt')
+        .innerJoin('p.tags', 'tag')
+        .where('tag.id = :tagId', { tagId })
+        .andWhere('p.isDeleted = false')
+        .groupBy('p.authorId')
+        .getRawMany<{ userId: string; cnt: string }>(),
+      this.answerRepo
+        .createQueryBuilder('a')
+        .select('a.authorId', 'userId')
+        .addSelect('COUNT(a.id)', 'cnt')
+        .innerJoin('a.post', 'p')
+        .innerJoin('p.tags', 'tag')
+        .where('tag.id = :tagId', { tagId })
+        .andWhere('a.isDeleted = false')
+        .andWhere('p.isDeleted = false')
+        .groupBy('a.authorId')
+        .getRawMany<{ userId: string; cnt: string }>(),
+    ]);
+
+    const totalMap = new Map<string, number>();
+    for (const row of [...postRows, ...answerRows]) {
+      totalMap.set(row.userId, (totalMap.get(row.userId) ?? 0) + Number(row.cnt));
+    }
+
+    if (totalMap.size === 0) return null;
+
+    const [topUserId, topCount] = [...totalMap.entries()].sort((a, b) => b[1] - a[1])[0];
+
+    const user = await this.userRepo.findOne({
+      where: { id: topUserId, isActive: true },
+      select: ['id', 'username', 'displayName', 'avatarUrl'],
+    });
+
+    if (!user) return null;
+
+    return {
+      userId: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
+      contributionCount: topCount,
+    };
   }
 
   private async fetchRankedUsers(
