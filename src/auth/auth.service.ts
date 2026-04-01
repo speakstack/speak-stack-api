@@ -15,6 +15,7 @@ import {
 import { EmailVerification } from "./entities/email-verification.entity";
 import { JwtPayload } from "./types/tokens.type";
 import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto";
+import { LevelService } from "../level/level.service";
 
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || "at-secret-key";
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || "rt-secret-key";
@@ -49,6 +50,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
+    private readonly levelService: LevelService,
   ) {}
 
   /**
@@ -429,6 +431,8 @@ export class AuthService {
     const nativeCount = await this.userLanguageRepository.count({
       where: { userId, relation: UserLanguageRelation.NATIVE },
     });
+    const { current: level, next: nextLevel } =
+      await this.levelService.getLevelForReputation(user.reputation);
     return {
       id: user.id,
       username: user.username,
@@ -440,6 +444,11 @@ export class AuthService {
       hasGoogleLinked: user.googleId !== null,
       hasPassword: user.passwordHash !== null,
       hasUsernameSet: user.hasUsernameSet,
+      reputation: user.reputation,
+      level: { id: level.id, name: level.name, minReputation: level.minReputation },
+      nextLevel: nextLevel
+        ? { id: nextLevel.id, name: nextLevel.name, minReputation: nextLevel.minReputation }
+        : null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import { Language } from "./language/entities/language.entity";
+import { Level } from "./level/entities/level.entity";
 import { Tag } from "./tag/entities/tag.entity";
 import { User } from "./user/entities/user.entity";
 // Import PostAttachment before Post to resolve circular dependency in Bun
@@ -44,6 +45,16 @@ const LANGUAGES: { code: string; name: string }[] = [
   { code: "sv", name: "Swedish" },
   { code: "uk", name: "Ukrainian" },
   { code: "tl", name: "Tagalog" },
+];
+
+// ─── Levels ──────────────────────────────────────────────────────────────────
+
+const LEVELS: { name: string; minReputation: number }[] = [
+  { name: "Newbie", minReputation: 0 },
+  { name: "Beginner", minReputation: 100 },
+  { name: "Intermediate", minReputation: 500 },
+  { name: "Advanced", minReputation: 1500 },
+  { name: "Expert", minReputation: 5000 },
 ];
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -1247,6 +1258,17 @@ async function seed(): Promise<void> {
   const answerVoteRepo = ds.getRepository(AnswerVote);
   const reputationRepo = ds.getRepository(ReputationHistory);
   const userLanguageRepo = ds.getRepository(UserLanguage);
+  const levelRepo = ds.getRepository(Level);
+
+  // ── Seeding Levels ─────────────────────────────────────────────────────
+  console.log("── Seeding Levels ──");
+  for (const lvl of LEVELS) {
+    const existing = await levelRepo.findOne({ where: { name: lvl.name } });
+    if (existing) continue;
+    await levelRepo.save(levelRepo.create(lvl));
+    console.log(`  + level: ${lvl.name} (${lvl.minReputation}+ rep)`);
+  }
+  console.log(`Levels seeded\n`);
 
   // ── 1. Languages ────────────────────────────────────────────────────────
   console.log("── Seeding Languages ──");

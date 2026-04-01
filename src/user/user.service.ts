@@ -14,6 +14,7 @@ import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { UserProfileDto } from "../auth/dto/auth.dto";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
+import { LevelService } from "../level/level.service";
 
 const AVATAR_SIZE = 256;
 const AVATAR_QUALITY = 80;
@@ -35,6 +36,7 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserLanguage)
     private readonly userLanguageRepository: Repository<UserLanguage>,
+    private readonly levelService: LevelService,
   ) {}
 
   async updateProfile(
@@ -132,6 +134,8 @@ export class UserService {
     const nativeCount = await this.userLanguageRepository.count({
       where: { userId, relation: UserLanguageRelation.NATIVE },
     });
+    const { current: level, next: nextLevel } =
+      await this.levelService.getLevelForReputation(user.reputation);
     return {
       id: user.id,
       username: user.username,
@@ -143,6 +147,11 @@ export class UserService {
       hasGoogleLinked: user.googleId !== null,
       hasPassword: user.passwordHash !== null,
       hasUsernameSet: user.hasUsernameSet,
+      reputation: user.reputation,
+      level: { id: level.id, name: level.name, minReputation: level.minReputation },
+      nextLevel: nextLevel
+        ? { id: nextLevel.id, name: nextLevel.name, minReputation: nextLevel.minReputation }
+        : null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
