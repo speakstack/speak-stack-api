@@ -91,6 +91,15 @@ export class UserProfileDto {
   @ApiProperty({ description: "Whether the user has chosen a username" })
   hasUsernameSet: boolean;
 
+  @ApiProperty({ description: "Reputation points" })
+  reputation: number;
+
+  @ApiProperty({ description: "Current level" })
+  level: { id: number; name: string; minReputation: number };
+
+  @ApiPropertyOptional({ description: "Next level threshold (null if at max level)", nullable: true })
+  nextLevel: { id: number; name: string; minReputation: number } | null;
+
   @ApiProperty({ description: "Account creation timestamp" })
   createdAt: Date;
 
