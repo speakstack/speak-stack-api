@@ -72,6 +72,7 @@ export class AnswerResponseDto {
     default: 0,
   })
   userVote: number;
+  @ApiProperty() commentCount: number;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 }

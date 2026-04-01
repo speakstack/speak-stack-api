@@ -15,10 +15,16 @@ import {
 import { AuthService } from "./auth.service";
 import {
   RefreshTokenDto,
+  SendOtpDto,
+  SendOtpResponseDto,
   SignInDto,
   SignUpDto,
+  GoogleSignInDto,
+  SetPasswordDto,
   TokensDto,
   UserProfileDto,
+  VerifyOtpDto,
+  VerifyOtpResponseDto,
 } from "./dto/auth.dto";
 import { Public } from "../common/decorators/public.decorator";
 import { GetCurrentUser } from "../common/decorators/get-current-user.decorator";
@@ -31,6 +37,26 @@ import { ApiSuccessMessage } from "../common/decorators/api-success-message.deco
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post("send-otp")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Send OTP verification code to email" })
+  @ApiResponse({ status: HttpStatus.OK, type: SendOtpResponseDto })
+  @ApiSuccessMessage("Verification code sent successfully")
+  sendOtp(@Body() dto: SendOtpDto): Promise<SendOtpResponseDto> {
+    return this.authService.sendOtp(dto.email);
+  }
+
+  @Public()
+  @Post("verify-otp")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Verify OTP code" })
+  @ApiResponse({ status: HttpStatus.OK, type: VerifyOtpResponseDto })
+  @ApiSuccessMessage("Email verified successfully")
+  verifyOtp(@Body() dto: VerifyOtpDto): Promise<VerifyOtpResponseDto> {
+    return this.authService.verifyOtp(dto.verificationId, dto.otp);
+  }
 
   @Public()
   @Post("sign-up")
@@ -52,6 +78,16 @@ export class AuthController {
     return this.authService.signIn(dto);
   }
 
+  @Public()
+  @Post("google")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Sign in or sign up with Google ID token" })
+  @ApiResponse({ status: HttpStatus.OK, type: TokensDto })
+  @ApiSuccessMessage("Google authentication successful")
+  googleSignIn(@Body() dto: GoogleSignInDto): Promise<TokensDto> {
+    return this.authService.googleSignIn(dto.idToken);
+  }
+
   @ApiBearerAuth()
   @Post("sign-out")
   @HttpCode(HttpStatus.OK)
@@ -60,6 +96,19 @@ export class AuthController {
   @ApiSuccessMessage("User signed out successfully")
   signOut(@GetCurrentUser("sub") userId: string): Promise<void> {
     return this.authService.logout(userId);
+  }
+
+  @ApiBearerAuth()
+  @Post("set-password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set password for Google-only users" })
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiSuccessMessage("Password set successfully")
+  setPassword(
+    @GetCurrentUser("sub") userId: string,
+    @Body() dto: SetPasswordDto,
+  ): Promise<void> {
+    return this.authService.setPassword(userId, dto.password);
   }
 
   @Public()

@@ -24,6 +24,9 @@ import { GrammarModule } from "./grammar/grammar.module";
 import { PostVote } from "./vote/entities/post-vote.entity";
 import { AnswerVote } from "./vote/entities/answer-vote.entity";
 import { VoteModule } from "./vote/vote.module";
+import { EmailVerification } from "./auth/entities/email-verification.entity";
+import { Comment } from "./comment/entities/comment.entity";
+import { CommentModule } from "./comment/comment.module";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -47,7 +50,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
         username: configService.get<string>("database.username"),
         password: configService.get<string>("database.password"),
         database: configService.get<string>("database.database"),
-        entities: [User, Tag, Post, PostAttachment, Answer, ReputationHistory, Language, UserLanguage, PostVote, AnswerVote],
+        entities: [User, Tag, Post, PostAttachment, Answer, ReputationHistory, Language, UserLanguage, PostVote, AnswerVote, EmailVerification, Comment],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: Bun.env.NODE_ENV !== "production",
         logging: Bun.env.NODE_ENV === "development",
@@ -61,6 +64,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     PostModule,
     AnswerModule,
     VoteModule,
+    CommentModule,
     LanguageModule,
     UserLanguageModule,
     GrammarModule,
