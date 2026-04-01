@@ -1,4 +1,5 @@
 import { DataSource } from "typeorm";
+import "./badge/entities/user-badge.entity";
 import { Badge, BadgeTriggerType } from "./badge/entities/badge.entity";
 import { Language } from "./language/entities/language.entity";
 import { Level } from "./level/entities/level.entity";
