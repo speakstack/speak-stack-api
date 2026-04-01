@@ -8,6 +8,7 @@ import { PostModule } from "../post/post.module";
 import { UserModule } from "../user/user.module";
 import { ReputationModule } from "../reputation/reputation.module";
 import { VoteModule } from "../vote/vote.module";
+import { BadgeModule } from "../badge/badge.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { VoteModule } from "../vote/vote.module";
     UserModule,
     ReputationModule,
     VoteModule,
+    BadgeModule,
   ],
   controllers: [PostAnswersController, AnswerController],
   providers: [AnswerService],

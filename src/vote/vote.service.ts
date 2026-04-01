@@ -9,13 +9,18 @@ import { ReputationHistory } from "../reputation/entities/reputation-history.ent
 import { VoteResponseDto } from "./dto/vote.dto";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
+import { BadgeService } from "../badge/badge.service";
+import { BadgeTriggerType } from "../badge/entities/badge.entity";
 
 const POST_UPVOTE_REP = 3;
 const ANSWER_UPVOTE_REP = 5;
 
 @Injectable()
 export class VoteService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly badgeService: BadgeService,
+  ) {}
 
   async votePost(
     userId: string,
@@ -67,21 +72,24 @@ export class VoteService {
             change: -POST_UPVOTE_REP,
             relatedPostId: postId,
           });
+          await manager
+            .createQueryBuilder()
+            .update(User)
+            .set({ upvotesReceived: () => "GREATEST(0, upvotes_received - 1)" })
+            .where("id = :id", { id: post.authorId })
+            .execute();
         } else if (existingVote.value === -1) {
           await manager.decrement(Post, { id: postId }, "downvoteCount", 1);
         }
       }
 
       if (finalValue === 0) {
-        // Unvote: remove the vote record
         if (existingVote) {
           await manager.remove(PostVote, existingVote);
         }
       } else {
-        // Add new vote counts
         if (finalValue === 1) {
           await manager.increment(Post, { id: postId }, "upvoteCount", 1);
-          // Add rep for new upvote
           await manager.increment(
             User,
             { id: post.authorId },
@@ -95,6 +103,12 @@ export class VoteService {
             change: POST_UPVOTE_REP,
             relatedPostId: postId,
           });
+          await manager.increment(User, { id: post.authorId }, "upvotesReceived", 1);
+          await this.badgeService.checkAndAwardBadges(
+            post.authorId,
+            [BadgeTriggerType.UPVOTES_RECEIVED],
+            manager,
+          );
         } else if (finalValue === -1) {
           await manager.increment(Post, { id: postId }, "downvoteCount", 1);
         }
@@ -180,21 +194,24 @@ export class VoteService {
             change: -ANSWER_UPVOTE_REP,
             relatedAnswerId: answerId,
           });
+          await manager
+            .createQueryBuilder()
+            .update(User)
+            .set({ upvotesReceived: () => "GREATEST(0, upvotes_received - 1)" })
+            .where("id = :id", { id: answer.authorId })
+            .execute();
         } else if (existingVote.value === -1) {
           await manager.decrement(Answer, { id: answerId }, "downvoteCount", 1);
         }
       }
 
       if (finalValue === 0) {
-        // Unvote: remove the vote record
         if (existingVote) {
           await manager.remove(AnswerVote, existingVote);
         }
       } else {
-        // Add new vote counts
         if (finalValue === 1) {
           await manager.increment(Answer, { id: answerId }, "upvoteCount", 1);
-          // Add rep for new upvote
           await manager.increment(
             User,
             { id: answer.authorId },
@@ -208,6 +225,17 @@ export class VoteService {
             change: ANSWER_UPVOTE_REP,
             relatedAnswerId: answerId,
           });
+          await manager.increment(
+            User,
+            { id: answer.authorId },
+            "upvotesReceived",
+            1,
+          );
+          await this.badgeService.checkAndAwardBadges(
+            answer.authorId,
+            [BadgeTriggerType.UPVOTES_RECEIVED],
+            manager,
+          );
         } else if (finalValue === -1) {
           await manager.increment(
             Answer,

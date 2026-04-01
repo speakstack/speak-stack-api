@@ -20,6 +20,8 @@ import { PostDetailResponseDto } from "../post/dto/post.dto";
 import { PostService } from "../post/post.service";
 import { buildPagination } from "../common/dto/pagination.dto";
 import { VoteService } from "../vote/vote.service";
+import { BadgeService } from "../badge/badge.service";
+import { BadgeTriggerType } from "../badge/entities/badge.entity";
 
 const ANSWER_CREATED_REP = 10;
 const ANSWER_ACCEPTED_REP = 15;
@@ -40,6 +42,7 @@ export class AnswerService {
     private readonly dataSource: DataSource,
     private readonly postService: PostService,
     private readonly voteService: VoteService,
+    private readonly badgeService: BadgeService,
   ) {}
 
   async createAnswer(
@@ -87,6 +90,12 @@ export class AnswerService {
         relatedPostId: postId,
         relatedAnswerId: savedAnswer.id,
       });
+
+      await this.badgeService.checkAndAwardBadges(
+        userId,
+        [BadgeTriggerType.FIRST_ANSWER, BadgeTriggerType.ANSWER_COUNT],
+        manager,
+      );
 
       return savedAnswer;
     });
@@ -308,6 +317,12 @@ export class AnswerService {
         relatedPostId: postId,
         relatedAnswerId: answerId,
       });
+
+      await this.badgeService.checkAndAwardBadges(
+        answer.authorId,
+        [BadgeTriggerType.ACCEPTED_ANSWER_COUNT],
+        manager,
+      );
     });
 
     this.logger.log(`Answer ${answerId} accepted on post ${postId}`);

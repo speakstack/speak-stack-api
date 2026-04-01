@@ -26,6 +26,8 @@ import {
 } from "./dto/post.dto";
 import { buildPagination } from "../common/dto/pagination.dto";
 import { VoteService } from "../vote/vote.service";
+import { BadgeService } from "../badge/badge.service";
+import { BadgeTriggerType } from "../badge/entities/badge.entity";
 
 const CONTENT_TRUNCATE_LENGTH = 200;
 const EDIT_WINDOW_HOURS = 24;
@@ -72,6 +74,7 @@ export class PostService {
     private readonly reputationHistoryRepository: Repository<ReputationHistory>,
     private readonly dataSource: DataSource,
     private readonly voteService: VoteService,
+    private readonly badgeService: BadgeService,
   ) {}
 
   async createPost(
@@ -115,6 +118,12 @@ export class PostService {
         change: POST_CREATED_REP,
         relatedPostId: savedPost.id,
       });
+
+      await this.badgeService.checkAndAwardBadges(
+        userId,
+        [BadgeTriggerType.FIRST_POST, BadgeTriggerType.POST_COUNT],
+        manager,
+      );
 
       return savedPost;
     });
