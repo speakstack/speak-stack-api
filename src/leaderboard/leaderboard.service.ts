@@ -51,7 +51,6 @@ export class LeaderboardService {
     const yesterdayMap = new Map(yesterday.map((r, i) => [r.userId, i + 1]));
 
     return {
-      period,
       data: today.map((row, i) => {
         const todayRank = i + 1;
         const yesterdayRank = yesterdayMap.get(row.userId) ?? null;
