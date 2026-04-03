@@ -68,6 +68,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     HealthModule,
     TagModule,
     ReputationModule,
+    FeedModule,
     PostModule,
     AnswerModule,
     VoteModule,
@@ -78,7 +79,6 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     LevelModule,
     BadgeModule,
     LeaderboardModule,
-    FeedModule,
   ],
   providers: [
     {
