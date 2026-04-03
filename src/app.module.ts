@@ -33,6 +33,7 @@ import { Badge } from "./badge/entities/badge.entity";
 import { UserBadge } from "./badge/entities/user-badge.entity";
 import { BadgeModule } from "./badge/badge.module";
 import { LeaderboardModule } from "./leaderboard/leaderboard.module";
+import { FeedModule } from "./feed/feed.module";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -77,6 +78,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     LevelModule,
     BadgeModule,
     LeaderboardModule,
+    FeedModule,
   ],
   providers: [
     {
