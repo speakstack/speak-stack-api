@@ -11,7 +11,6 @@ export class LeaderboardEntryDto {
 }
 
 export class LeaderboardResponseDto {
-  period: LeaderboardPeriod;
   data: LeaderboardEntryDto[];
 }
 
