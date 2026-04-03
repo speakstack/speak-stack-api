@@ -12,23 +12,31 @@ export class CreateUserLanguageDto {
 
   @ApiProperty({ description: "Relation type", enum: UserLanguageRelation })
   @IsEnum(UserLanguageRelation, {
-    message: "Relation must be one of: native, learning, can_help",
+    message: `Relation must be one of: ${Object.values(UserLanguageRelation).join(", ")}`,
   })
   relation: UserLanguageRelation;
 
-  @ApiPropertyOptional({ description: "Proficiency level", enum: LanguageProficiency })
+  @ApiPropertyOptional({
+    description: "Proficiency level",
+    enum: LanguageProficiency,
+  })
   @IsOptional()
   @IsEnum(LanguageProficiency, {
-    message: "Proficiency must be one of: beginner, intermediate, advanced, fluent, native",
+    message:
+      "Proficiency must be one of: beginner, intermediate, advanced, fluent, native",
   })
   proficiency?: LanguageProficiency;
 }
 
 export class UpdateUserLanguageDto {
-  @ApiPropertyOptional({ description: "Proficiency level", enum: LanguageProficiency })
+  @ApiPropertyOptional({
+    description: "Proficiency level",
+    enum: LanguageProficiency,
+  })
   @IsOptional()
   @IsEnum(LanguageProficiency, {
-    message: "Proficiency must be one of: beginner, intermediate, advanced, fluent, native",
+    message:
+      "Proficiency must be one of: beginner, intermediate, advanced, fluent, native",
   })
   proficiency?: LanguageProficiency;
 }
@@ -43,6 +51,7 @@ export class UserLanguageResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() language: LanguageDto;
   @ApiProperty({ enum: UserLanguageRelation }) relation: UserLanguageRelation;
-  @ApiProperty({ nullable: true, enum: LanguageProficiency }) proficiency: LanguageProficiency | null;
+  @ApiProperty({ nullable: true, enum: LanguageProficiency })
+  proficiency: LanguageProficiency | null;
   @ApiProperty() createdAt: Date;
 }
