@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { APP_GUARD } from "@nestjs/core";
@@ -34,6 +34,9 @@ import { UserBadge } from "./badge/entities/user-badge.entity";
 import { BadgeModule } from "./badge/badge.module";
 import { LeaderboardModule } from "./leaderboard/leaderboard.module";
 import { FeedModule } from "./feed/feed.module";
+import { LoggerModule } from "./common/logger/logger.module";
+import { RequestContextMiddleware } from "./common/logger/request-context.middleware";
+import { HttpLoggerMiddleware } from "./common/logger/http-logger.middleware";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -43,6 +46,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
  */
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig],
@@ -87,4 +91,18 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(RequestContextMiddleware, HttpLoggerMiddleware)
+      .exclude(
+        { path: "health", method: RequestMethod.ALL },
+        { path: "docs", method: RequestMethod.ALL },
+        { path: "docs/(.*)", method: RequestMethod.ALL },
+        { path: "docs-json", method: RequestMethod.ALL },
+        { path: "docs-yaml", method: RequestMethod.ALL },
+        { path: "uploads/(.*)", method: RequestMethod.ALL },
+      )
+      .forRoutes("*");
+  }
+}
