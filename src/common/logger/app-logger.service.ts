@@ -52,7 +52,9 @@ export class AppLogger extends ConsoleLogger {
       this.emitJson("log", message, params);
       return;
     }
-    super.log(message as string, ...(this.appendContextSuffix(params) as []));
+    const enriched = this.enrichForPretty(message);
+    const stringParams = params.filter((p): p is string => typeof p === "string");
+    super.log(enriched, ...stringParams);
   }
 
   error(message: unknown, ...params: LogParam[]): void {
@@ -60,7 +62,9 @@ export class AppLogger extends ConsoleLogger {
       this.emitJson("error", message, params);
       return;
     }
-    super.error(message as string, ...(this.appendContextSuffix(params) as []));
+    const enriched = this.enrichForPretty(message);
+    const stringParams = params.filter((p): p is string => typeof p === "string");
+    super.error(enriched, ...stringParams);
   }
 
   warn(message: unknown, ...params: LogParam[]): void {
@@ -68,7 +72,9 @@ export class AppLogger extends ConsoleLogger {
       this.emitJson("warn", message, params);
       return;
     }
-    super.warn(message as string, ...(this.appendContextSuffix(params) as []));
+    const enriched = this.enrichForPretty(message);
+    const stringParams = params.filter((p): p is string => typeof p === "string");
+    super.warn(enriched, ...stringParams);
   }
 
   debug(message: unknown, ...params: LogParam[]): void {
@@ -76,7 +82,9 @@ export class AppLogger extends ConsoleLogger {
       this.emitJson("debug", message, params);
       return;
     }
-    super.debug(message as string, ...(this.appendContextSuffix(params) as []));
+    const enriched = this.enrichForPretty(message);
+    const stringParams = params.filter((p): p is string => typeof p === "string");
+    super.debug(enriched, ...stringParams);
   }
 
   verbose(message: unknown, ...params: LogParam[]): void {
@@ -84,25 +92,22 @@ export class AppLogger extends ConsoleLogger {
       this.emitJson("verbose", message, params);
       return;
     }
-    super.verbose(message as string, ...(this.appendContextSuffix(params) as []));
+    const enriched = this.enrichForPretty(message);
+    const stringParams = params.filter((p): p is string => typeof p === "string");
+    super.verbose(enriched, ...stringParams);
   }
 
-  private appendContextSuffix(params: LogParam[]): LogParam[] {
+  private enrichForPretty(message: unknown): string {
+    const base = typeof message === "string" ? message : JSON.stringify(message);
     const store = this.requestContext.get();
     if (!store) {
-      return params;
+      return base;
     }
     const parts: string[] = [`req=${store.requestId}`];
     if (store.userId !== undefined) {
       parts.push(`user=${store.userId}`);
     }
-    const suffix = ` [${parts.join(" ")}]`;
-    const last = params[params.length - 1];
-    if (typeof last === "string") {
-      params[params.length - 1] = `${last}${suffix}`;
-      return params;
-    }
-    return [...params, suffix];
+    return `${base} [${parts.join(" ")}]`;
   }
 
   private emitJson(
