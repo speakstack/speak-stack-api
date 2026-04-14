@@ -64,7 +64,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
         entities: [User, Tag, Post, PostAttachment, Answer, ReputationHistory, Language, UserLanguage, PostVote, AnswerVote, EmailVerification, Comment, Level, Badge, UserBadge],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: Bun.env.NODE_ENV !== "production",
-        logging: Bun.env.NODE_ENV === "development",
+        logging: ["error", "warn"],
       }),
     }),
     UserModule,
@@ -98,11 +98,11 @@ export class AppModule implements NestModule {
       .exclude(
         { path: "health", method: RequestMethod.ALL },
         { path: "docs", method: RequestMethod.ALL },
-        { path: "docs/(.*)", method: RequestMethod.ALL },
+        { path: "docs/*path", method: RequestMethod.ALL },
         { path: "docs-json", method: RequestMethod.ALL },
         { path: "docs-yaml", method: RequestMethod.ALL },
-        { path: "uploads/(.*)", method: RequestMethod.ALL },
+        { path: "uploads/*path", method: RequestMethod.ALL },
       )
-      .forRoutes("*");
+      .forRoutes("*path");
   }
 }
