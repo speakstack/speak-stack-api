@@ -67,6 +67,28 @@ services:
     profiles:
       - seed
 
+  alloy:
+    image: grafana/alloy:latest
+    container_name: speak-stack-alloy
+    restart: unless-stopped
+    ports:
+      - "12345:12345"
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=0.0.0.0:12345
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+    environment:
+      LOKI_URL: ${LOKI_URL}
+      LOKI_USER: ${LOKI_USER}
+      LOKI_TOKEN: ${LOKI_TOKEN}
+    networks:
+      - speak-stack-network
+
   postgres:
     image: postgres:16-alpine
     container_name: speak-stack-db
@@ -97,3 +119,4 @@ networks:
 
 volumes:
   postgres_data:
+  alloy_data:
