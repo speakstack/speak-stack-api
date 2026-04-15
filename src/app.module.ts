@@ -37,6 +37,8 @@ import { FeedModule } from "./feed/feed.module";
 import { LoggerModule } from "./common/logger/logger.module";
 import { RequestContextMiddleware } from "./common/logger/request-context.middleware";
 import { HttpLoggerMiddleware } from "./common/logger/http-logger.middleware";
+import { MetricsModule } from "./common/metrics/metrics.module";
+import { HttpMetricsMiddleware } from "./common/metrics/http-metrics.middleware";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -47,6 +49,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 @Module({
   imports: [
     LoggerModule,
+    MetricsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig],
@@ -94,7 +97,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
-      .apply(RequestContextMiddleware, HttpLoggerMiddleware)
+      .apply(RequestContextMiddleware, HttpLoggerMiddleware, HttpMetricsMiddleware)
       .exclude(
         { path: "health", method: RequestMethod.ALL },
         { path: "docs", method: RequestMethod.ALL },
