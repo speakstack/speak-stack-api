@@ -1,10 +1,17 @@
-import { Module } from "@nestjs/common";
+import { Controller, Module } from "@nestjs/common";
 import {
   PrometheusModule,
   makeHistogramProvider,
 } from "@willsoto/nestjs-prometheus";
 
 export const HTTP_REQUEST_DURATION = "http_request_duration_seconds";
+
+// Noop controller passed to PrometheusModule to override the default
+// `PrometheusController` (which would mount `/metrics` on the public API
+// port). We serve metrics from a separate HTTP server on METRICS_PORT
+// (see metrics-server.ts). The public port must never expose /metrics.
+@Controller()
+class NoopMetricsController {}
 
 const httpRequestDurationProvider = makeHistogramProvider({
   name: HTTP_REQUEST_DURATION,
@@ -17,9 +24,7 @@ const httpRequestDurationProvider = makeHistogramProvider({
 @Module({
   imports: [
     PrometheusModule.register({
-      // Don't provide a controller: we serve /metrics from a separate
-      // HTTP server on METRICS_PORT (see metrics-server.ts). The public API
-      // port must never expose /metrics.
+      controller: NoopMetricsController,
       defaultMetrics: {
         enabled: true,
       },
