@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:8080"
+    expose:
+      - "9464"
     depends_on:
       postgres:
         condition: service_healthy
@@ -14,6 +16,7 @@ services:
       - .env
     environment:
       DATABASE_HOST: postgres
+      METRICS_PORT: 9464
     networks:
       - speak-stack-network
     profiles:
@@ -27,6 +30,8 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:8080"
+    expose:
+      - "9464"
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,6 +39,7 @@ services:
       - .env
     environment:
       DATABASE_HOST: postgres
+      METRICS_PORT: 9464
     volumes:
       - ./src:/app/src
       - ./nest-cli.json:/app/nest-cli.json
