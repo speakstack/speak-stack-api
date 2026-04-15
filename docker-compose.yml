@@ -113,6 +113,18 @@ services:
       timeout: 5s
       retries: 5
 
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: speak-stack-node-exporter
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    volumes:
+      - /:/host:ro,rslave
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+
 networks:
   speak-stack-network:
     driver: bridge
