@@ -10,6 +10,7 @@ import { AppLogger } from "./common/logger/app-logger.service";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
 import { AppException } from "./common/exceptions/app.exception";
 import { ErrorCode } from "./common/enums/error-code.enum";
+import { startMetricsServer } from "./common/metrics/metrics-server";
 
 const DEFAULT_PORT = Bun.env.PORT || 8080;
 
@@ -103,6 +104,7 @@ async function bootstrap(): Promise<void> {
   const reflector = app.get(Reflector);
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
   setupSwagger(app);
+  await startMetricsServer();
   const port = Bun.env.PORT || DEFAULT_PORT;
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
