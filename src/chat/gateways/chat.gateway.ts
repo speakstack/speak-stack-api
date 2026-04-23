@@ -42,6 +42,7 @@ function errorAck(err: unknown): WsAck<never> {
       error: { code: err.errorCode.code, message: err.errorCode.message },
     };
   }
+  console.error("[ChatGateway] non-AppException:", err);
   return {
     ok: false,
     error: { code: "INTERNAL_ERROR", message: "Internal error" },
@@ -116,7 +117,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = client.data.user as JwtPayload;
       const msg = await this.chatService.sendMessage(user.sub, body);
       this.server
-        .of("/chat")
         .to(roomName(msg.channelId))
         .emit("message:new", { message: msg });
       return okAck({ messageId: msg.id });
@@ -135,7 +135,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = client.data.user as JwtPayload;
       const msg = await this.chatService.editMessage(user.sub, body);
       this.server
-        .of("/chat")
         .to(roomName(msg.channelId))
         .emit("message:updated", { message: msg });
       return okAck({ messageId: msg.id });
@@ -154,7 +153,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = client.data.user as JwtPayload;
       const result = await this.chatService.deleteMessage(user.sub, body);
       this.server
-        .of("/chat")
         .to(roomName(result.channelId))
         .emit("message:deleted", result);
       return okAck({ messageId: result.messageId });

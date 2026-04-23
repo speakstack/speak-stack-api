@@ -29,12 +29,12 @@ import {
 } from "./dto/message.dto";
 
 const CHAT_UPLOAD_ROOT = path.join(process.cwd(), "uploads", "chat");
-const MAX_CHAT_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_CHAT_FILE_BYTES = 16 * 1024 * 1024;
 const MAX_ATTACHMENTS_PER_MESSAGE = 4;
 const DEFAULT_MESSAGE_PAGE_SIZE = 50;
 const MAX_MESSAGE_PAGE_SIZE = 100;
-const ALLOWED_CHAT_MIME_PREFIXES = ["image/", "audio/"];
-const ALLOWED_CHAT_MIME_EXACT = ["video/mp4", "application/pdf"];
+const ALLOWED_CHAT_MIME_PREFIXES = ["image/", "audio/", "video/"];
+const ALLOWED_CHAT_MIME_EXACT = ["application/pdf"];
 
 function isAllowedChatMime(mime: string): boolean {
   return (

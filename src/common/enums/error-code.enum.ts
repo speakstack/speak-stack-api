@@ -206,7 +206,7 @@ const ERROR_CODE_DEFINITIONS = {
   },
   FILE_TOO_LARGE: {
     httpStatus: HttpStatus.BAD_REQUEST,
-    message: "File size must not exceed 10 MB",
+    message: "File size exceeds the allowed limit",
   },
   // Grammar check errors
   GRAMMAR_API_CONFIG_ERROR: {

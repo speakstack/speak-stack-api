@@ -40,7 +40,7 @@ import { GetCurrentUser } from "../common/decorators/get-current-user.decorator"
 import { ApiSuccessMessage } from "../common/decorators/api-success-message.decorator";
 import { AdminGuard } from "../common/guards/admin.guard";
 
-const MAX_CHAT_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_CHAT_UPLOAD_BYTES = 16 * 1024 * 1024;
 
 @ApiTags("Chat")
 @ApiBearerAuth()
