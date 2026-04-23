@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:8080"
+    expose:
+      - "9464"
     depends_on:
       postgres:
         condition: service_healthy
@@ -14,6 +16,7 @@ services:
       - .env
     environment:
       DATABASE_HOST: postgres
+      METRICS_PORT: 9464
     networks:
       - speak-stack-network
     profiles:
@@ -27,6 +30,8 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:8080"
+    expose:
+      - "9464"
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,6 +39,7 @@ services:
       - .env
     environment:
       DATABASE_HOST: postgres
+      METRICS_PORT: 9464
     volumes:
       - ./src:/app/src
       - ./nest-cli.json:/app/nest-cli.json
@@ -67,6 +73,33 @@ services:
     profiles:
       - seed
 
+  alloy:
+    image: grafana/alloy:latest
+    container_name: speak-stack-alloy
+    restart: unless-stopped
+    ports:
+      - "12345:12345"
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=0.0.0.0:12345
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      LOKI_URL: ${LOKI_URL}
+      LOKI_USER: ${LOKI_USER}
+      LOKI_TOKEN: ${LOKI_TOKEN}
+      PROM_URL: ${PROM_URL}
+      PROM_USER: ${PROM_USER}
+      PROM_TOKEN: ${PROM_TOKEN}
+    networks:
+      - speak-stack-network
+
   postgres:
     image: postgres:16-alpine
     container_name: speak-stack-db
@@ -91,9 +124,50 @@ services:
       timeout: 5s
       retries: 5
 
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: speak-stack-node-exporter
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    volumes:
+      - /:/host:ro,rslave
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: speak-stack-cadvisor
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - speak-stack-network
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    container_name: speak-stack-postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${DATABASE_USERNAME:-postgres}:${DATABASE_PASSWORD:-postgres}@postgres:5432/${DATABASE_NAME:-speak_stack}?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - speak-stack-network
+
 networks:
   speak-stack-network:
     driver: bridge
 
 volumes:
   postgres_data:
+  alloy_data:

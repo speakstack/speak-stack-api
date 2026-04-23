@@ -1,0 +1,137 @@
+// Discover all Docker containers on the host
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Filter to speak-stack containers and add labels
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/speak-stack-.*"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/speak-stack-alloy"
+    action        = "drop"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  rule {
+    target_label = "service"
+    replacement  = "speak-stack"
+  }
+
+  rule {
+    target_label = "env"
+    replacement  = "production"
+  }
+}
+
+// Tail Docker container logs
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  forward_to = [loki.process.parse_json.receiver]
+}
+
+// Parse JSON logs and promote a few low-cardinality fields to labels
+loki.process "parse_json" {
+  forward_to = [loki.write.grafana_cloud.receiver]
+
+  stage.json {
+    expressions = {
+      level   = "level",
+      context = "context",
+    }
+  }
+
+  stage.labels {
+    values = {
+      level   = "",
+      context = "",
+    }
+  }
+}
+
+// Ship to Grafana Cloud Loki
+loki.write "grafana_cloud" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+
+    basic_auth {
+      username = sys.env("LOKI_USER")
+      password = sys.env("LOKI_TOKEN")
+    }
+  }
+}
+
+// ─── Metrics scraping ──────────────────────────────────────────
+
+prometheus.scrape "api" {
+  targets = [{
+    __address__ = "speak-stack-api:9464",
+    job         = "speak-stack-api",
+  }]
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_labels.receiver]
+}
+
+prometheus.scrape "cadvisor" {
+  targets = [{
+    __address__ = "cadvisor:8080",
+    job         = "cadvisor",
+  }]
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_labels.receiver]
+}
+
+prometheus.scrape "postgres" {
+  targets = [{
+    __address__ = "postgres-exporter:9187",
+    job         = "postgres",
+  }]
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_labels.receiver]
+}
+
+prometheus.scrape "node" {
+  targets = [{
+    __address__ = "host.docker.internal:9100",
+    job         = "node",
+  }]
+  scrape_interval = "30s"
+  forward_to      = [prometheus.relabel.add_labels.receiver]
+}
+
+prometheus.relabel "add_labels" {
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+
+  rule {
+    target_label = "service"
+    replacement  = "speak-stack"
+  }
+  rule {
+    target_label = "env"
+    replacement  = "production"
+  }
+}
+
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = sys.env("PROM_URL")
+
+    basic_auth {
+      username = sys.env("PROM_USER")
+      password = sys.env("PROM_TOKEN")
+    }
+  }
+}

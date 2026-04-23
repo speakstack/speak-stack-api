@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { APP_GUARD } from "@nestjs/core";
@@ -34,6 +34,11 @@ import { UserBadge } from "./badge/entities/user-badge.entity";
 import { BadgeModule } from "./badge/badge.module";
 import { LeaderboardModule } from "./leaderboard/leaderboard.module";
 import { FeedModule } from "./feed/feed.module";
+import { LoggerModule } from "./common/logger/logger.module";
+import { RequestContextMiddleware } from "./common/logger/request-context.middleware";
+import { HttpLoggerMiddleware } from "./common/logger/http-logger.middleware";
+import { MetricsModule } from "./common/metrics/metrics.module";
+import { HttpMetricsMiddleware } from "./common/metrics/http-metrics.middleware";
 import databaseConfig from "./config/database.config";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 
@@ -43,6 +48,8 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
  */
 @Module({
   imports: [
+    LoggerModule,
+    MetricsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig],
@@ -60,7 +67,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
         entities: [User, Tag, Post, PostAttachment, Answer, ReputationHistory, Language, UserLanguage, PostVote, AnswerVote, EmailVerification, Comment, Level, Badge, UserBadge],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: Bun.env.NODE_ENV !== "production",
-        logging: Bun.env.NODE_ENV === "development",
+        logging: ["error", "warn"],
       }),
     }),
     UserModule,
@@ -87,4 +94,18 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(RequestContextMiddleware, HttpLoggerMiddleware, HttpMetricsMiddleware)
+      .exclude(
+        { path: "health", method: RequestMethod.ALL },
+        { path: "docs", method: RequestMethod.ALL },
+        { path: "docs/*path", method: RequestMethod.ALL },
+        { path: "docs-json", method: RequestMethod.ALL },
+        { path: "docs-yaml", method: RequestMethod.ALL },
+        { path: "uploads/*path", method: RequestMethod.ALL },
+      )
+      .forRoutes("*path");
+  }
+}

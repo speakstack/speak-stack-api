@@ -5,6 +5,7 @@ import { Observable } from "rxjs";
 import { IS_PUBLIC_KEY } from "../../common/decorators/public.decorator";
 import { AppException } from "../../common/exceptions/app.exception";
 import { ErrorCode } from "../../common/enums/error-code.enum";
+import { RequestContextService } from "../../common/logger/request-context.service";
 
 /**
  * Access Token Guard registered globally.
@@ -13,7 +14,10 @@ import { ErrorCode } from "../../common/enums/error-code.enum";
  */
 @Injectable()
 export class AtGuard extends AuthGuard("jwt") {
-  constructor(private readonly reflector: Reflector) {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly requestContext: RequestContextService,
+  ) {
     super();
   }
 
@@ -43,10 +47,22 @@ export class AtGuard extends AuthGuard("jwt") {
       context.getClass(),
     ]);
     if (isPublic) {
+      if (user && typeof user === "object") {
+        const sub = (user as { sub?: number }).sub;
+        if (typeof sub === "number") {
+          this.requestContext.setUserId(sub);
+        }
+      }
       return user;
     }
     if (err || !user) {
       throw new AppException(ErrorCode.UNAUTHORIZED);
+    }
+    if (user && typeof user === "object") {
+      const sub = (user as { sub?: number }).sub;
+      if (typeof sub === "number") {
+        this.requestContext.setUserId(sub);
+      }
     }
     return user;
   }

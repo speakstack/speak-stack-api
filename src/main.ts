@@ -1,14 +1,16 @@
 import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
-import { Logger, ValidationPipe } from "@nestjs/common";
+import { ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ValidationError } from "class-validator";
 import * as path from "path";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
+import { AppLogger } from "./common/logger/app-logger.service";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
 import { AppException } from "./common/exceptions/app.exception";
 import { ErrorCode } from "./common/enums/error-code.enum";
+import { startMetricsServer } from "./common/metrics/metrics-server";
 
 const DEFAULT_PORT = Bun.env.PORT || 8080;
 
@@ -49,10 +51,13 @@ function setupSwagger(
 }
 
 async function bootstrap(): Promise<void> {
-  const logger = new Logger("Bootstrap");
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ["error", "warn", "log", "debug", "verbose"],
+    bufferLogs: true,
   });
+  const appLogger = await app.resolve(AppLogger);
+  app.useLogger(appLogger);
+  app.set("trust proxy", true);
+  const logger = appLogger;
   app.useStaticAssets(path.join(process.cwd(), "uploads"), {
     prefix: "/uploads",
   });
@@ -99,6 +104,7 @@ async function bootstrap(): Promise<void> {
   const reflector = app.get(Reflector);
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
   setupSwagger(app);
+  await startMetricsServer();
   const port = Bun.env.PORT || DEFAULT_PORT;
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
