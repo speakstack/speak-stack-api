@@ -1,7 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { JwtService, TokenExpiredError } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, EntityManager, MoreThan, QueryFailedError, Repository } from "typeorm";
+import {
+  DataSource,
+  EntityManager,
+  MoreThan,
+  QueryFailedError,
+  Repository,
+} from "typeorm";
 import { OAuth2Client } from "google-auth-library";
 import { createHash, randomBytes, randomInt } from "crypto";
 import { MailService } from "../mail/mail.service";
@@ -14,7 +20,12 @@ import {
 } from "../user-language/entities/user-language.entity";
 import { EmailVerification } from "./entities/email-verification.entity";
 import { JwtPayload } from "./types/tokens.type";
-import { SignInDto, SignUpDto, TokensDto, UserProfileDto } from "./dto/auth.dto";
+import {
+  SignInDto,
+  SignUpDto,
+  TokensDto,
+  UserProfileDto,
+} from "./dto/auth.dto";
 import { LevelService } from "../level/level.service";
 import { BadgeService } from "../badge/badge.service";
 
@@ -194,7 +205,8 @@ export class AuthService {
     });
     if (lastRecord) {
       const retryAfter = Math.ceil(
-        (lastRecord.createdAt.getTime() + OTP_COOLDOWN_MS - now.getTime()) / 1000,
+        (lastRecord.createdAt.getTime() + OTP_COOLDOWN_MS - now.getTime()) /
+          1000,
       );
       throw new AppException(ErrorCode.OTP_COOLDOWN, {
         retryAfter: String(retryAfter),
@@ -220,7 +232,8 @@ export class AuthService {
       otpHash,
       expiresAt: new Date(now.getTime() + OTP_EXPIRY_MS),
     });
-    const savedVerification = await this.emailVerificationRepository.save(verification);
+    const savedVerification =
+      await this.emailVerificationRepository.save(verification);
 
     // Send email (delete record on failure)
     try {
@@ -247,7 +260,9 @@ export class AuthService {
 
     // Idempotent: if already verified and not used, return success
     if (record.isVerified) {
-      const isExistingUser = await this.isExistingGoogleUserWithoutPassword(record.email);
+      const isExistingUser = await this.isExistingGoogleUserWithoutPassword(
+        record.email,
+      );
       return { verificationId: record.id, isExistingUser };
     }
 
@@ -272,7 +287,9 @@ export class AuthService {
     record.verifiedAt = new Date();
     await this.emailVerificationRepository.save(record);
 
-    const isExistingUser = await this.isExistingGoogleUserWithoutPassword(record.email);
+    const isExistingUser = await this.isExistingGoogleUserWithoutPassword(
+      record.email,
+    );
     this.logger.log(`OTP verified for ${record.email}`);
     return { verificationId: record.id, isExistingUser };
   }
@@ -448,9 +465,17 @@ export class AuthService {
       hasPassword: user.passwordHash !== null,
       hasUsernameSet: user.hasUsernameSet,
       reputation: user.reputation,
-      level: { id: level.id, name: level.name, minReputation: level.minReputation },
+      level: {
+        id: level.id,
+        name: level.name,
+        minReputation: level.minReputation,
+      },
       nextLevel: nextLevel
-        ? { id: nextLevel.id, name: nextLevel.name, minReputation: nextLevel.minReputation }
+        ? {
+            id: nextLevel.id,
+            name: nextLevel.name,
+            minReputation: nextLevel.minReputation,
+          }
         : null,
       badges: userBadges.map((ub) => ({
         id: ub.badge.id,
@@ -504,14 +529,20 @@ export class AuthService {
     }
   }
 
-  private async isExistingGoogleUserWithoutPassword(email: string): Promise<boolean> {
+  private async isExistingGoogleUserWithoutPassword(
+    email: string,
+  ): Promise<boolean> {
     const user = await this.userRepository.findOne({ where: { email } });
     return !!user && !!user.googleId && !user.passwordHash;
   }
 
-  private async verifyGoogleIdToken(
-    idToken: string,
-  ): Promise<{ sub: string; email: string; email_verified: boolean; name?: string; picture?: string }> {
+  private async verifyGoogleIdToken(idToken: string): Promise<{
+    sub: string;
+    email: string;
+    email_verified: boolean;
+    name?: string;
+    picture?: string;
+  }> {
     try {
       const client = new OAuth2Client(GOOGLE_CLIENT_ID);
       const ticket = await client.verifyIdToken({

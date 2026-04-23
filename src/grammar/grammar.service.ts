@@ -22,7 +22,13 @@ const GRAMMAR_CHECK_SCHEMA: ResponseSchema = {
           type: {
             type: SchemaType.STRING,
             format: "enum",
-            enum: ["grammar", "spelling", "punctuation", "style", "word_choice"],
+            enum: [
+              "grammar",
+              "spelling",
+              "punctuation",
+              "style",
+              "word_choice",
+            ],
           },
           original: { type: SchemaType.STRING },
           corrected: { type: SchemaType.STRING },
@@ -68,7 +74,8 @@ export class GrammarService {
       throw new AppException(ErrorCode.GRAMMAR_API_CONFIG_ERROR);
     }
 
-    const model = this.configService.get<string>("GEMINI_MODEL") || "gemini-2.0-flash";
+    const model =
+      this.configService.get<string>("GEMINI_MODEL") || "gemini-2.0-flash";
 
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
@@ -102,7 +109,10 @@ export class GrammarService {
         throw error;
       }
 
-      this.logger.error(`Gemini API call failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Gemini API call failed: ${error.message}`,
+        error.stack,
+      );
 
       if (error?.status === 429 || error?.message?.includes("429")) {
         throw new AppException(ErrorCode.GRAMMAR_RATE_LIMITED);

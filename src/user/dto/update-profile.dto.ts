@@ -1,5 +1,11 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import {
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from "class-validator";
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({ description: "Display name" })
@@ -9,13 +15,16 @@ export class UpdateProfileDto {
   @MaxLength(50, { message: "Display name must not exceed 50 characters" })
   displayName?: string;
 
-  @ApiPropertyOptional({ description: "Username (one-time set for Google sign-up users)" })
+  @ApiPropertyOptional({
+    description: "Username (one-time set for Google sign-up users)",
+  })
   @IsOptional()
   @IsString({ message: "Username must be a string" })
   @MinLength(3, { message: "Username must be at least 3 characters long" })
   @MaxLength(20, { message: "Username must not exceed 20 characters" })
   @Matches(/^[a-z0-9_]+$/, {
-    message: "Username can only contain lowercase letters, numbers, and underscores",
+    message:
+      "Username can only contain lowercase letters, numbers, and underscores",
   })
   username?: string;
 }

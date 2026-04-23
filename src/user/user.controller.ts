@@ -77,9 +77,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get current user badges" })
   @ApiResponse({ status: HttpStatus.OK })
-  getUserBadges(
-    @GetCurrentUser("sub") userId: string,
-  ): Promise<UserBadge[]> {
+  getUserBadges(@GetCurrentUser("sub") userId: string): Promise<UserBadge[]> {
     return this.badgeService.getUserBadges(userId);
   }
 }

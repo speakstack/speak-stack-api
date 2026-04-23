@@ -33,7 +33,10 @@ export class CorrectionDto {
 }
 
 export class GrammarCheckResponseDto {
-  @ApiProperty({ description: "Detected language (BCP 47 code)", example: "en" })
+  @ApiProperty({
+    description: "Detected language (BCP 47 code)",
+    example: "en",
+  })
   language: string;
 
   @ApiProperty({

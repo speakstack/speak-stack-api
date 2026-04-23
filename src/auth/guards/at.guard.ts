@@ -41,7 +41,12 @@ export class AtGuard extends AuthGuard("jwt") {
     return super.canActivate(ctx);
   }
 
-  handleRequest<T>(err: Error | null, user: T, _info: unknown, context: ExecutionContext): T {
+  handleRequest<T>(
+    err: Error | null,
+    user: T,
+    _info: unknown,
+    context: ExecutionContext,
+  ): T {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

@@ -178,8 +178,7 @@ export class CommentService {
         .createQueryBuilder()
         .update(User)
         .set({
-          reputation: () =>
-            `GREATEST(0, reputation - ${COMMENT_CREATED_REP})`,
+          reputation: () => `GREATEST(0, reputation - ${COMMENT_CREATED_REP})`,
         })
         .where("id = :id", { id: comment.userId })
         .execute();
