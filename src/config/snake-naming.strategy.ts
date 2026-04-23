@@ -1,7 +1,10 @@
 import { DefaultNamingStrategy, NamingStrategyInterface } from "typeorm";
 
 function snakeCase(str: string): string {
-  return str.replace(/([A-Z])/g, "_$1").replace(/^_/, "").toLowerCase();
+  return str
+    .replace(/([A-Z])/g, "_$1")
+    .replace(/^_/, "")
+    .toLowerCase();
 }
 
 export class SnakeNamingStrategy
@@ -27,17 +30,11 @@ export class SnakeNamingStrategy
     return propertyName;
   }
 
-  joinColumnName(
-    relationName: string,
-    referencedColumnName: string,
-  ): string {
+  joinColumnName(relationName: string, referencedColumnName: string): string {
     return snakeCase(relationName) + "_" + snakeCase(referencedColumnName);
   }
 
-  joinTableName(
-    firstTableName: string,
-    secondTableName: string,
-  ): string {
+  joinTableName(firstTableName: string, secondTableName: string): string {
     return firstTableName + "_" + secondTableName;
   }
 

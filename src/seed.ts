@@ -61,16 +61,76 @@ const LEVELS: { name: string; minReputation: number }[] = [
 
 // ─── Badges ──────────────────────────────────────────────────────────────────
 
-const BADGES: { name: string; slug: string; description: string; triggerType: BadgeTriggerType; threshold: number }[] = [
-  { name: "First Post", slug: "first-post", description: "Created your first post", triggerType: BadgeTriggerType.FIRST_POST, threshold: 1 },
-  { name: "First Answer", slug: "first-answer", description: "Wrote your first answer", triggerType: BadgeTriggerType.FIRST_ANSWER, threshold: 1 },
-  { name: "First Comment", slug: "first-comment", description: "Left your first comment", triggerType: BadgeTriggerType.FIRST_COMMENT, threshold: 1 },
-  { name: "Prolific Poster", slug: "prolific-poster", description: "Created 10 posts", triggerType: BadgeTriggerType.POST_COUNT, threshold: 10 },
-  { name: "Helpful Hand", slug: "helpful-hand", description: "Wrote 10 answers", triggerType: BadgeTriggerType.ANSWER_COUNT, threshold: 10 },
-  { name: "Problem Solver", slug: "problem-solver", description: "Had 5 answers accepted", triggerType: BadgeTriggerType.ACCEPTED_ANSWER_COUNT, threshold: 5 },
-  { name: "Rising Star", slug: "rising-star", description: "Received 10 upvotes", triggerType: BadgeTriggerType.UPVOTES_RECEIVED, threshold: 10 },
-  { name: "Popular Voice", slug: "popular-voice", description: "Received 50 upvotes", triggerType: BadgeTriggerType.UPVOTES_RECEIVED, threshold: 50 },
-  { name: "Legend", slug: "legend", description: "Received 100 upvotes", triggerType: BadgeTriggerType.UPVOTES_RECEIVED, threshold: 100 },
+const BADGES: {
+  name: string;
+  slug: string;
+  description: string;
+  triggerType: BadgeTriggerType;
+  threshold: number;
+}[] = [
+  {
+    name: "First Post",
+    slug: "first-post",
+    description: "Created your first post",
+    triggerType: BadgeTriggerType.FIRST_POST,
+    threshold: 1,
+  },
+  {
+    name: "First Answer",
+    slug: "first-answer",
+    description: "Wrote your first answer",
+    triggerType: BadgeTriggerType.FIRST_ANSWER,
+    threshold: 1,
+  },
+  {
+    name: "First Comment",
+    slug: "first-comment",
+    description: "Left your first comment",
+    triggerType: BadgeTriggerType.FIRST_COMMENT,
+    threshold: 1,
+  },
+  {
+    name: "Prolific Poster",
+    slug: "prolific-poster",
+    description: "Created 10 posts",
+    triggerType: BadgeTriggerType.POST_COUNT,
+    threshold: 10,
+  },
+  {
+    name: "Helpful Hand",
+    slug: "helpful-hand",
+    description: "Wrote 10 answers",
+    triggerType: BadgeTriggerType.ANSWER_COUNT,
+    threshold: 10,
+  },
+  {
+    name: "Problem Solver",
+    slug: "problem-solver",
+    description: "Had 5 answers accepted",
+    triggerType: BadgeTriggerType.ACCEPTED_ANSWER_COUNT,
+    threshold: 5,
+  },
+  {
+    name: "Rising Star",
+    slug: "rising-star",
+    description: "Received 10 upvotes",
+    triggerType: BadgeTriggerType.UPVOTES_RECEIVED,
+    threshold: 10,
+  },
+  {
+    name: "Popular Voice",
+    slug: "popular-voice",
+    description: "Received 50 upvotes",
+    triggerType: BadgeTriggerType.UPVOTES_RECEIVED,
+    threshold: 50,
+  },
+  {
+    name: "Legend",
+    slug: "legend",
+    description: "Received 100 upvotes",
+    triggerType: BadgeTriggerType.UPVOTES_RECEIVED,
+    threshold: 100,
+  },
 ];
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -408,62 +468,232 @@ interface UserLanguageSeed {
 
 const USER_LANGUAGES: UserLanguageSeed[] = [
   // admin — English native, learning Vietnamese
-  { username: "admin", languageCode: "en", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "admin", languageCode: "vi", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.INTERMEDIATE },
+  {
+    username: "admin",
+    languageCode: "en",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "admin",
+    languageCode: "vi",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.INTERMEDIATE,
+  },
 
   // mod_linh — Vietnamese native, fluent English, can help with both
-  { username: "mod_linh", languageCode: "vi", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "mod_linh", languageCode: "en", relation: UserLanguageRelation.CAN_HELP, proficiency: LanguageProficiency.FLUENT },
-  { username: "mod_linh", languageCode: "ja", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.BEGINNER },
+  {
+    username: "mod_linh",
+    languageCode: "vi",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "mod_linh",
+    languageCode: "en",
+    relation: UserLanguageRelation.CAN_HELP,
+    proficiency: LanguageProficiency.FLUENT,
+  },
+  {
+    username: "mod_linh",
+    languageCode: "ja",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.BEGINNER,
+  },
 
   // yuki_tanaka — Japanese native, learning English & Korean
-  { username: "yuki_tanaka", languageCode: "ja", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "yuki_tanaka", languageCode: "en", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.ADVANCED },
-  { username: "yuki_tanaka", languageCode: "ko", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.BEGINNER },
+  {
+    username: "yuki_tanaka",
+    languageCode: "ja",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "yuki_tanaka",
+    languageCode: "en",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.ADVANCED,
+  },
+  {
+    username: "yuki_tanaka",
+    languageCode: "ko",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.BEGINNER,
+  },
 
   // mike_johnson — English native, learning Japanese
-  { username: "mike_johnson", languageCode: "en", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "mike_johnson", languageCode: "en-US", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "mike_johnson", languageCode: "ja", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.INTERMEDIATE },
+  {
+    username: "mike_johnson",
+    languageCode: "en",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "mike_johnson",
+    languageCode: "en-US",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "mike_johnson",
+    languageCode: "ja",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.INTERMEDIATE,
+  },
 
   // soo_jin — Korean native, fluent English, can help Korean learners
-  { username: "soo_jin", languageCode: "ko", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "soo_jin", languageCode: "en", relation: UserLanguageRelation.CAN_HELP, proficiency: LanguageProficiency.FLUENT },
-  { username: "soo_jin", languageCode: "ja", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.INTERMEDIATE },
+  {
+    username: "soo_jin",
+    languageCode: "ko",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "soo_jin",
+    languageCode: "en",
+    relation: UserLanguageRelation.CAN_HELP,
+    proficiency: LanguageProficiency.FLUENT,
+  },
+  {
+    username: "soo_jin",
+    languageCode: "ja",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.INTERMEDIATE,
+  },
 
   // marie_dupont — French native, learning Spanish & English
-  { username: "marie_dupont", languageCode: "fr", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "marie_dupont", languageCode: "es", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.INTERMEDIATE },
-  { username: "marie_dupont", languageCode: "en", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.ADVANCED },
+  {
+    username: "marie_dupont",
+    languageCode: "fr",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "marie_dupont",
+    languageCode: "es",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.INTERMEDIATE,
+  },
+  {
+    username: "marie_dupont",
+    languageCode: "en",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.ADVANCED,
+  },
 
   // carlos_garcia — Spanish native, learning English & Portuguese
-  { username: "carlos_garcia", languageCode: "es", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "carlos_garcia", languageCode: "en", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.INTERMEDIATE },
-  { username: "carlos_garcia", languageCode: "pt-BR", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.BEGINNER },
+  {
+    username: "carlos_garcia",
+    languageCode: "es",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "carlos_garcia",
+    languageCode: "en",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.INTERMEDIATE,
+  },
+  {
+    username: "carlos_garcia",
+    languageCode: "pt-BR",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.BEGINNER,
+  },
 
   // wei_chen — Chinese native, fluent English, can help with Chinese
-  { username: "wei_chen", languageCode: "zh-CN", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "wei_chen", languageCode: "en", relation: UserLanguageRelation.CAN_HELP, proficiency: LanguageProficiency.FLUENT },
-  { username: "wei_chen", languageCode: "ja", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.ADVANCED },
+  {
+    username: "wei_chen",
+    languageCode: "zh-CN",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "wei_chen",
+    languageCode: "en",
+    relation: UserLanguageRelation.CAN_HELP,
+    proficiency: LanguageProficiency.FLUENT,
+  },
+  {
+    username: "wei_chen",
+    languageCode: "ja",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.ADVANCED,
+  },
 
   // anna_schmidt — German native, learning French
-  { username: "anna_schmidt", languageCode: "de", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "anna_schmidt", languageCode: "fr", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.BEGINNER },
-  { username: "anna_schmidt", languageCode: "en", relation: UserLanguageRelation.CAN_HELP, proficiency: LanguageProficiency.FLUENT },
+  {
+    username: "anna_schmidt",
+    languageCode: "de",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "anna_schmidt",
+    languageCode: "fr",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.BEGINNER,
+  },
+  {
+    username: "anna_schmidt",
+    languageCode: "en",
+    relation: UserLanguageRelation.CAN_HELP,
+    proficiency: LanguageProficiency.FLUENT,
+  },
 
   // thanh_pham — Vietnamese native, learning English & Japanese
-  { username: "thanh_pham", languageCode: "vi", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "thanh_pham", languageCode: "en", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.INTERMEDIATE },
-  { username: "thanh_pham", languageCode: "ja", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.BEGINNER },
+  {
+    username: "thanh_pham",
+    languageCode: "vi",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "thanh_pham",
+    languageCode: "en",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.INTERMEDIATE,
+  },
+  {
+    username: "thanh_pham",
+    languageCode: "ja",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.BEGINNER,
+  },
 
   // raj_patel — Hindi native, learning English & Korean
-  { username: "raj_patel", languageCode: "hi", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "raj_patel", languageCode: "en", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.ADVANCED },
-  { username: "raj_patel", languageCode: "ko", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.BEGINNER },
+  {
+    username: "raj_patel",
+    languageCode: "hi",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "raj_patel",
+    languageCode: "en",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.ADVANCED,
+  },
+  {
+    username: "raj_patel",
+    languageCode: "ko",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.BEGINNER,
+  },
 
   // sakura_ito — Japanese native, beginner English
-  { username: "sakura_ito", languageCode: "ja", relation: UserLanguageRelation.NATIVE, proficiency: LanguageProficiency.NATIVE },
-  { username: "sakura_ito", languageCode: "en", relation: UserLanguageRelation.LEARNING, proficiency: LanguageProficiency.BEGINNER },
+  {
+    username: "sakura_ito",
+    languageCode: "ja",
+    relation: UserLanguageRelation.NATIVE,
+    proficiency: LanguageProficiency.NATIVE,
+  },
+  {
+    username: "sakura_ito",
+    languageCode: "en",
+    relation: UserLanguageRelation.LEARNING,
+    proficiency: LanguageProficiency.BEGINNER,
+  },
 ];
 
 // ─── Posts ───────────────────────────────────────────────────────────────────
@@ -767,11 +997,13 @@ const POSTS: PostSeed[] = [
     type: PostType.QUESTION,
     status: PostStatus.CLOSED,
     title: "Can someone do my Japanese homework?",
-    content: "I have a Japanese assignment due tomorrow. Can someone translate these 10 sentences for me? Will pay $5.",
+    content:
+      "I have a Japanese assignment due tomorrow. Can someone translate these 10 sentences for me? Will pay $5.",
     targetLanguageCode: "ja",
     tagSlugs: ["translation"],
     isClosed: true,
-    closedReason: "This post was closed because it violates our community guidelines. We help people learn, but we don't do homework for others.",
+    closedReason:
+      "This post was closed because it violates our community guidelines. We help people learn, but we don't do homework for others.",
     closedByUsername: "admin",
     viewCount: 34,
   },
@@ -1079,109 +1311,344 @@ interface VoteSeed {
 
 const VOTES: VoteSeed[] = [
   // Upvotes on popular posts
-  { voterUsername: "yuki_tanaka", targetType: "post", targetIndex: 0, value: 1 },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "post",
+    targetIndex: 0,
+    value: 1,
+  },
   { voterUsername: "wei_chen", targetType: "post", targetIndex: 0, value: 1 },
   { voterUsername: "soo_jin", targetType: "post", targetIndex: 0, value: 1 },
-  { voterUsername: "carlos_garcia", targetType: "post", targetIndex: 0, value: 1 },
+  {
+    voterUsername: "carlos_garcia",
+    targetType: "post",
+    targetIndex: 0,
+    value: 1,
+  },
   { voterUsername: "sakura_ito", targetType: "post", targetIndex: 0, value: 1 },
 
-  { voterUsername: "mike_johnson", targetType: "post", targetIndex: 4, value: 1 },
-  { voterUsername: "yuki_tanaka", targetType: "post", targetIndex: 4, value: 1 },
-  { voterUsername: "carlos_garcia", targetType: "post", targetIndex: 4, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "post",
+    targetIndex: 4,
+    value: 1,
+  },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "post",
+    targetIndex: 4,
+    value: 1,
+  },
+  {
+    voterUsername: "carlos_garcia",
+    targetType: "post",
+    targetIndex: 4,
+    value: 1,
+  },
   { voterUsername: "sakura_ito", targetType: "post", targetIndex: 4, value: 1 },
 
-  { voterUsername: "mike_johnson", targetType: "post", targetIndex: 18, value: 1 },
-  { voterUsername: "yuki_tanaka", targetType: "post", targetIndex: 18, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "post",
+    targetIndex: 18,
+    value: 1,
+  },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "post",
+    targetIndex: 18,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "post", targetIndex: 18, value: 1 },
 
   { voterUsername: "admin", targetType: "post", targetIndex: 23, value: 1 },
-  { voterUsername: "mike_johnson", targetType: "post", targetIndex: 23, value: 1 },
-  { voterUsername: "yuki_tanaka", targetType: "post", targetIndex: 23, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "post",
+    targetIndex: 23,
+    value: 1,
+  },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "post",
+    targetIndex: 23,
+    value: 1,
+  },
   { voterUsername: "wei_chen", targetType: "post", targetIndex: 23, value: 1 },
   { voterUsername: "raj_patel", targetType: "post", targetIndex: 23, value: 1 },
-  { voterUsername: "thanh_pham", targetType: "post", targetIndex: 23, value: 1 },
+  {
+    voterUsername: "thanh_pham",
+    targetType: "post",
+    targetIndex: 23,
+    value: 1,
+  },
 
   { voterUsername: "admin", targetType: "post", targetIndex: 24, value: 1 },
-  { voterUsername: "mike_johnson", targetType: "post", targetIndex: 24, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "post",
+    targetIndex: 24,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "post", targetIndex: 24, value: 1 },
-  { voterUsername: "carlos_garcia", targetType: "post", targetIndex: 24, value: 1 },
+  {
+    voterUsername: "carlos_garcia",
+    targetType: "post",
+    targetIndex: 24,
+    value: 1,
+  },
   { voterUsername: "wei_chen", targetType: "post", targetIndex: 24, value: 1 },
 
-  { voterUsername: "mike_johnson", targetType: "post", targetIndex: 32, value: 1 },
-  { voterUsername: "thanh_pham", targetType: "post", targetIndex: 32, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "post",
+    targetIndex: 32,
+    value: 1,
+  },
+  {
+    voterUsername: "thanh_pham",
+    targetType: "post",
+    targetIndex: 32,
+    value: 1,
+  },
   { voterUsername: "mod_linh", targetType: "post", targetIndex: 32, value: 1 },
 
   { voterUsername: "raj_patel", targetType: "post", targetIndex: 34, value: 1 },
-  { voterUsername: "sakura_ito", targetType: "post", targetIndex: 34, value: 1 },
+  {
+    voterUsername: "sakura_ito",
+    targetType: "post",
+    targetIndex: 34,
+    value: 1,
+  },
   { voterUsername: "wei_chen", targetType: "post", targetIndex: 34, value: 1 },
-  { voterUsername: "yuki_tanaka", targetType: "post", targetIndex: 34, value: 1 },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "post",
+    targetIndex: 34,
+    value: 1,
+  },
 
   // Downvote on the closed homework post
-  { voterUsername: "yuki_tanaka", targetType: "post", targetIndex: 26, value: -1 },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "post",
+    targetIndex: 26,
+    value: -1,
+  },
   { voterUsername: "admin", targetType: "post", targetIndex: 26, value: -1 },
   { voterUsername: "soo_jin", targetType: "post", targetIndex: 26, value: -1 },
 
   // Upvotes on popular answers
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 0, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 0,
+    value: 1,
+  },
   { voterUsername: "wei_chen", targetType: "answer", targetIndex: 0, value: 1 },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 0, value: 1 },
   { voterUsername: "admin", targetType: "answer", targetIndex: 0, value: 1 },
-  { voterUsername: "raj_patel", targetType: "answer", targetIndex: 0, value: 1 },
-  { voterUsername: "sakura_ito", targetType: "answer", targetIndex: 0, value: 1 },
+  {
+    voterUsername: "raj_patel",
+    targetType: "answer",
+    targetIndex: 0,
+    value: 1,
+  },
+  {
+    voterUsername: "sakura_ito",
+    targetType: "answer",
+    targetIndex: 0,
+    value: 1,
+  },
 
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 1, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 1,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 1, value: 1 },
 
-  { voterUsername: "thanh_pham", targetType: "answer", targetIndex: 2, value: 1 },
-  { voterUsername: "carlos_garcia", targetType: "answer", targetIndex: 2, value: 1 },
-  { voterUsername: "yuki_tanaka", targetType: "answer", targetIndex: 2, value: 1 },
-  { voterUsername: "sakura_ito", targetType: "answer", targetIndex: 2, value: 1 },
+  {
+    voterUsername: "thanh_pham",
+    targetType: "answer",
+    targetIndex: 2,
+    value: 1,
+  },
+  {
+    voterUsername: "carlos_garcia",
+    targetType: "answer",
+    targetIndex: 2,
+    value: 1,
+  },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "answer",
+    targetIndex: 2,
+    value: 1,
+  },
+  {
+    voterUsername: "sakura_ito",
+    targetType: "answer",
+    targetIndex: 2,
+    value: 1,
+  },
   { voterUsername: "admin", targetType: "answer", targetIndex: 2, value: 1 },
 
-  { voterUsername: "thanh_pham", targetType: "answer", targetIndex: 3, value: 1 },
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 3, value: 1 },
+  {
+    voterUsername: "thanh_pham",
+    targetType: "answer",
+    targetIndex: 3,
+    value: 1,
+  },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 3,
+    value: 1,
+  },
 
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 4, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 4,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 4, value: 1 },
   { voterUsername: "admin", targetType: "answer", targetIndex: 4, value: 1 },
 
-  { voterUsername: "raj_patel", targetType: "answer", targetIndex: 5, value: 1 },
+  {
+    voterUsername: "raj_patel",
+    targetType: "answer",
+    targetIndex: 5,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 5, value: 1 },
   { voterUsername: "admin", targetType: "answer", targetIndex: 5, value: 1 },
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 5, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 5,
+    value: 1,
+  },
 
-  { voterUsername: "yuki_tanaka", targetType: "answer", targetIndex: 6, value: 1 },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "answer",
+    targetIndex: 6,
+    value: 1,
+  },
   { voterUsername: "admin", targetType: "answer", targetIndex: 6, value: 1 },
-  { voterUsername: "carlos_garcia", targetType: "answer", targetIndex: 6, value: 1 },
+  {
+    voterUsername: "carlos_garcia",
+    targetType: "answer",
+    targetIndex: 6,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 6, value: 1 },
-  { voterUsername: "thanh_pham", targetType: "answer", targetIndex: 6, value: 1 },
+  {
+    voterUsername: "thanh_pham",
+    targetType: "answer",
+    targetIndex: 6,
+    value: 1,
+  },
 
-  { voterUsername: "sakura_ito", targetType: "answer", targetIndex: 8, value: 1 },
+  {
+    voterUsername: "sakura_ito",
+    targetType: "answer",
+    targetIndex: 8,
+    value: 1,
+  },
   { voterUsername: "admin", targetType: "answer", targetIndex: 8, value: 1 },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 8, value: 1 },
-  { voterUsername: "carlos_garcia", targetType: "answer", targetIndex: 8, value: 1 },
+  {
+    voterUsername: "carlos_garcia",
+    targetType: "answer",
+    targetIndex: 8,
+    value: 1,
+  },
 
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 9, value: 1 },
-  { voterUsername: "yuki_tanaka", targetType: "answer", targetIndex: 9, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 9,
+    value: 1,
+  },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "answer",
+    targetIndex: 9,
+    value: 1,
+  },
   { voterUsername: "admin", targetType: "answer", targetIndex: 9, value: 1 },
 
-  { voterUsername: "wei_chen", targetType: "answer", targetIndex: 10, value: 1 },
+  {
+    voterUsername: "wei_chen",
+    targetType: "answer",
+    targetIndex: 10,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 10, value: 1 },
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 10, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 10,
+    value: 1,
+  },
 
   { voterUsername: "admin", targetType: "answer", targetIndex: 11, value: 1 },
-  { voterUsername: "thanh_pham", targetType: "answer", targetIndex: 11, value: 1 },
-  { voterUsername: "yuki_tanaka", targetType: "answer", targetIndex: 11, value: 1 },
+  {
+    voterUsername: "thanh_pham",
+    targetType: "answer",
+    targetIndex: 11,
+    value: 1,
+  },
+  {
+    voterUsername: "yuki_tanaka",
+    targetType: "answer",
+    targetIndex: 11,
+    value: 1,
+  },
 
-  { voterUsername: "marie_dupont", targetType: "answer", targetIndex: 14, value: 1 },
-  { voterUsername: "carlos_garcia", targetType: "answer", targetIndex: 14, value: 1 },
+  {
+    voterUsername: "marie_dupont",
+    targetType: "answer",
+    targetIndex: 14,
+    value: 1,
+  },
+  {
+    voterUsername: "carlos_garcia",
+    targetType: "answer",
+    targetIndex: 14,
+    value: 1,
+  },
 
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 17, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 17,
+    value: 1,
+  },
   { voterUsername: "soo_jin", targetType: "answer", targetIndex: 17, value: 1 },
-  { voterUsername: "raj_patel", targetType: "answer", targetIndex: 17, value: 1 },
+  {
+    voterUsername: "raj_patel",
+    targetType: "answer",
+    targetIndex: 17,
+    value: 1,
+  },
 
-  { voterUsername: "mike_johnson", targetType: "answer", targetIndex: 18, value: 1 },
-  { voterUsername: "raj_patel", targetType: "answer", targetIndex: 18, value: 1 },
+  {
+    voterUsername: "mike_johnson",
+    targetType: "answer",
+    targetIndex: 18,
+    value: 1,
+  },
+  {
+    voterUsername: "raj_patel",
+    targetType: "answer",
+    targetIndex: 18,
+    value: 1,
+  },
 ];
 
 // ─── Reputation Events ──────────────────────────────────────────────────────
@@ -1196,55 +1663,230 @@ interface ReputationSeed {
 
 const REPUTATION_EVENTS: ReputationSeed[] = [
   // yuki_tanaka gains rep from popular answers
-  { username: "yuki_tanaka", event: "answer_upvoted", change: 10, relatedAnswerIndex: 0 },
-  { username: "yuki_tanaka", event: "answer_upvoted", change: 10, relatedAnswerIndex: 0 },
-  { username: "yuki_tanaka", event: "answer_upvoted", change: 10, relatedAnswerIndex: 0 },
-  { username: "yuki_tanaka", event: "answer_accepted", change: 15, relatedAnswerIndex: 0 },
-  { username: "yuki_tanaka", event: "answer_upvoted", change: 10, relatedAnswerIndex: 4 },
-  { username: "yuki_tanaka", event: "answer_accepted", change: 15, relatedAnswerIndex: 4 },
-  { username: "yuki_tanaka", event: "answer_upvoted", change: 10, relatedAnswerIndex: 9 },
-  { username: "yuki_tanaka", event: "answer_accepted", change: 15, relatedAnswerIndex: 9 },
-  { username: "yuki_tanaka", event: "answer_upvoted", change: 10, relatedAnswerIndex: 10 },
-  { username: "yuki_tanaka", event: "answer_accepted", change: 15, relatedAnswerIndex: 10 },
+  {
+    username: "yuki_tanaka",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 0,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 0,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 0,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 0,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 4,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 4,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 9,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 9,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 10,
+  },
+  {
+    username: "yuki_tanaka",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 10,
+  },
 
   // mike_johnson gains rep
-  { username: "mike_johnson", event: "answer_upvoted", change: 10, relatedAnswerIndex: 2 },
-  { username: "mike_johnson", event: "answer_upvoted", change: 10, relatedAnswerIndex: 2 },
-  { username: "mike_johnson", event: "answer_accepted", change: 15, relatedAnswerIndex: 2 },
-  { username: "mike_johnson", event: "answer_upvoted", change: 10, relatedAnswerIndex: 6 },
-  { username: "mike_johnson", event: "answer_accepted", change: 15, relatedAnswerIndex: 6 },
-  { username: "mike_johnson", event: "answer_upvoted", change: 10, relatedAnswerIndex: 8 },
-  { username: "mike_johnson", event: "answer_accepted", change: 15, relatedAnswerIndex: 8 },
-  { username: "mike_johnson", event: "post_upvoted", change: 5, relatedPostIndex: 0 },
+  {
+    username: "mike_johnson",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 2,
+  },
+  {
+    username: "mike_johnson",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 2,
+  },
+  {
+    username: "mike_johnson",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 2,
+  },
+  {
+    username: "mike_johnson",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 6,
+  },
+  {
+    username: "mike_johnson",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 6,
+  },
+  {
+    username: "mike_johnson",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 8,
+  },
+  {
+    username: "mike_johnson",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 8,
+  },
+  {
+    username: "mike_johnson",
+    event: "post_upvoted",
+    change: 5,
+    relatedPostIndex: 0,
+  },
 
   // soo_jin gains rep
-  { username: "soo_jin", event: "answer_upvoted", change: 10, relatedAnswerIndex: 5 },
-  { username: "soo_jin", event: "answer_upvoted", change: 10, relatedAnswerIndex: 5 },
-  { username: "soo_jin", event: "answer_accepted", change: 15, relatedAnswerIndex: 5 },
-  { username: "soo_jin", event: "post_upvoted", change: 5, relatedPostIndex: 23 },
-  { username: "soo_jin", event: "post_upvoted", change: 5, relatedPostIndex: 23 },
+  {
+    username: "soo_jin",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 5,
+  },
+  {
+    username: "soo_jin",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 5,
+  },
+  {
+    username: "soo_jin",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 5,
+  },
+  {
+    username: "soo_jin",
+    event: "post_upvoted",
+    change: 5,
+    relatedPostIndex: 23,
+  },
+  {
+    username: "soo_jin",
+    event: "post_upvoted",
+    change: 5,
+    relatedPostIndex: 23,
+  },
 
   // wei_chen gains rep
-  { username: "wei_chen", event: "answer_upvoted", change: 10, relatedAnswerIndex: 1 },
-  { username: "wei_chen", event: "post_upvoted", change: 5, relatedPostIndex: 18 },
-  { username: "wei_chen", event: "post_upvoted", change: 5, relatedPostIndex: 18 },
-  { username: "wei_chen", event: "answer_upvoted", change: 10, relatedAnswerIndex: 18 },
+  {
+    username: "wei_chen",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 1,
+  },
+  {
+    username: "wei_chen",
+    event: "post_upvoted",
+    change: 5,
+    relatedPostIndex: 18,
+  },
+  {
+    username: "wei_chen",
+    event: "post_upvoted",
+    change: 5,
+    relatedPostIndex: 18,
+  },
+  {
+    username: "wei_chen",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 18,
+  },
 
   // admin gains rep
-  { username: "admin", event: "answer_upvoted", change: 10, relatedAnswerIndex: 8 },
-  { username: "admin", event: "answer_accepted", change: 15, relatedAnswerIndex: 8 },
-  { username: "admin", event: "answer_upvoted", change: 10, relatedAnswerIndex: 13 },
+  {
+    username: "admin",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 8,
+  },
+  {
+    username: "admin",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 8,
+  },
+  {
+    username: "admin",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 13,
+  },
 
   // mod_linh gains rep
-  { username: "mod_linh", event: "answer_upvoted", change: 10, relatedAnswerIndex: 11 },
-  { username: "mod_linh", event: "answer_accepted", change: 15, relatedAnswerIndex: 11 },
+  {
+    username: "mod_linh",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 11,
+  },
+  {
+    username: "mod_linh",
+    event: "answer_accepted",
+    change: 15,
+    relatedAnswerIndex: 11,
+  },
 
   // carlos_garcia gains rep
-  { username: "carlos_garcia", event: "answer_upvoted", change: 10, relatedAnswerIndex: 14 },
-  { username: "carlos_garcia", event: "post_upvoted", change: 5, relatedPostIndex: 5 },
+  {
+    username: "carlos_garcia",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 14,
+  },
+  {
+    username: "carlos_garcia",
+    event: "post_upvoted",
+    change: 5,
+    relatedPostIndex: 5,
+  },
 
   // marie_dupont gains rep
-  { username: "marie_dupont", event: "answer_upvoted", change: 10, relatedAnswerIndex: 12 },
+  {
+    username: "marie_dupont",
+    event: "answer_upvoted",
+    change: 10,
+    relatedAnswerIndex: 12,
+  },
 ];
 
 // ─── Seed Function ───────────────────────────────────────────────────────────
@@ -1345,11 +1987,16 @@ async function seed(): Promise<void> {
 
   // ── 3. Users ────────────────────────────────────────────────────────────
   console.log("── Seeding Users ──");
-  const defaultPasswordHash = await Bun.password.hash("Password123!", { algorithm: "bcrypt", cost: 10 });
+  const defaultPasswordHash = await Bun.password.hash("Password123!", {
+    algorithm: "bcrypt",
+    cost: 10,
+  });
   const userMap = new Map<string, User>();
   let usersCreated = 0;
   for (const u of USERS) {
-    const existing = await userRepo.findOne({ where: { username: u.username } });
+    const existing = await userRepo.findOne({
+      where: { username: u.username },
+    });
     if (existing) {
       userMap.set(u.username, existing);
       continue;
@@ -1369,7 +2016,9 @@ async function seed(): Promise<void> {
     console.log(`  + user: ${u.username} (${u.role})`);
     usersCreated++;
   }
-  console.log(`Users: ${usersCreated} created, ${USERS.length - usersCreated} already existed\n`);
+  console.log(
+    `Users: ${usersCreated} created, ${USERS.length - usersCreated} already existed\n`,
+  );
 
   // ── 4. User Languages ──────────────────────────────────────────────────
   console.log("── Seeding User Languages ──");
@@ -1392,7 +2041,9 @@ async function seed(): Promise<void> {
         proficiency: ul.proficiency,
       }),
     );
-    console.log(`  + ${ul.username}: ${ul.languageCode} (${ul.relation}/${ul.proficiency ?? "n/a"})`);
+    console.log(
+      `  + ${ul.username}: ${ul.languageCode} (${ul.relation}/${ul.proficiency ?? "n/a"})`,
+    );
     ulCreated++;
   }
   console.log(`User Languages: ${ulCreated} created\n`);
@@ -1418,7 +2069,9 @@ async function seed(): Promise<void> {
       continue;
     }
 
-    const closedBy = p.closedByUsername ? userMap.get(p.closedByUsername) : null;
+    const closedBy = p.closedByUsername
+      ? userMap.get(p.closedByUsername)
+      : null;
     const tags = p.tagSlugs
       .map((slug) => tagMap.get(slug))
       .filter(Boolean) as Tag[];
@@ -1487,7 +2140,9 @@ async function seed(): Promise<void> {
 
     const saved = await answerRepo.save(answer);
     answerEntities.push(saved);
-    console.log(`  + answer on "${POSTS[a.postIndex].title.substring(0, 40)}..." by ${a.authorUsername}`);
+    console.log(
+      `  + answer on "${POSTS[a.postIndex].title.substring(0, 40)}..." by ${a.authorUsername}`,
+    );
     answersCreated++;
 
     // Update post's answerCount
@@ -1582,11 +2237,11 @@ async function seed(): Promise<void> {
         change: r.change,
         relatedPostId:
           r.relatedPostIndex !== undefined
-            ? postEntities[r.relatedPostIndex]?.id ?? null
+            ? (postEntities[r.relatedPostIndex]?.id ?? null)
             : null,
         relatedAnswerId:
           r.relatedAnswerIndex !== undefined
-            ? answerEntities[r.relatedAnswerIndex]?.id ?? null
+            ? (answerEntities[r.relatedAnswerIndex]?.id ?? null)
             : null,
       }),
     );

@@ -1,20 +1,9 @@
-import {
-  ConsoleLogger,
-  Injectable,
-  LogLevel,
-  Scope,
-} from "@nestjs/common";
+import { ConsoleLogger, Injectable, LogLevel, Scope } from "@nestjs/common";
 import { RequestContextService } from "./request-context.service";
 
 type LogParam = unknown;
 
-const VALID_LEVELS: LogLevel[] = [
-  "error",
-  "warn",
-  "log",
-  "debug",
-  "verbose",
-];
+const VALID_LEVELS: LogLevel[] = ["error", "warn", "log", "debug", "verbose"];
 
 function resolveLogLevels(): LogLevel[] {
   const envLevel = (Bun.env.LOG_LEVEL || "").toLowerCase() as LogLevel;
@@ -53,7 +42,9 @@ export class AppLogger extends ConsoleLogger {
       return;
     }
     const enriched = this.enrichForPretty(message);
-    const stringParams = params.filter((p): p is string => typeof p === "string");
+    const stringParams = params.filter(
+      (p): p is string => typeof p === "string",
+    );
     super.log(enriched, ...stringParams);
   }
 
@@ -63,7 +54,9 @@ export class AppLogger extends ConsoleLogger {
       return;
     }
     const enriched = this.enrichForPretty(message);
-    const stringParams = params.filter((p): p is string => typeof p === "string");
+    const stringParams = params.filter(
+      (p): p is string => typeof p === "string",
+    );
     super.error(enriched, ...stringParams);
   }
 
@@ -73,7 +66,9 @@ export class AppLogger extends ConsoleLogger {
       return;
     }
     const enriched = this.enrichForPretty(message);
-    const stringParams = params.filter((p): p is string => typeof p === "string");
+    const stringParams = params.filter(
+      (p): p is string => typeof p === "string",
+    );
     super.warn(enriched, ...stringParams);
   }
 
@@ -83,7 +78,9 @@ export class AppLogger extends ConsoleLogger {
       return;
     }
     const enriched = this.enrichForPretty(message);
-    const stringParams = params.filter((p): p is string => typeof p === "string");
+    const stringParams = params.filter(
+      (p): p is string => typeof p === "string",
+    );
     super.debug(enriched, ...stringParams);
   }
 
@@ -93,12 +90,15 @@ export class AppLogger extends ConsoleLogger {
       return;
     }
     const enriched = this.enrichForPretty(message);
-    const stringParams = params.filter((p): p is string => typeof p === "string");
+    const stringParams = params.filter(
+      (p): p is string => typeof p === "string",
+    );
     super.verbose(enriched, ...stringParams);
   }
 
   private enrichForPretty(message: unknown): string {
-    const base = typeof message === "string" ? message : JSON.stringify(message);
+    const base =
+      typeof message === "string" ? message : JSON.stringify(message);
     const store = this.requestContext.get();
     if (!store) {
       return base;

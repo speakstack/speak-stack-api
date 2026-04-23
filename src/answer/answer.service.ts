@@ -210,18 +210,12 @@ export class AnswerService {
         deletedAt: new Date(),
       });
       await manager.decrement(Post, { id: answer.postId }, "answerCount", 1);
-      await manager.decrement(
-        User,
-        { id: answer.authorId },
-        "answersCount",
-        1,
-      );
+      await manager.decrement(User, { id: answer.authorId }, "answersCount", 1);
       await manager
         .createQueryBuilder()
         .update(User)
         .set({
-          reputation: () =>
-            `GREATEST(0, reputation - ${ANSWER_CREATED_REP})`,
+          reputation: () => `GREATEST(0, reputation - ${ANSWER_CREATED_REP})`,
         })
         .where("id = :id", { id: answer.authorId })
         .execute();
@@ -387,7 +381,10 @@ export class AnswerService {
     return this.postService.getPost(postId);
   }
 
-  private toAnswerResponse(answer: Answer, userVote: number = 0): AnswerResponseDto {
+  private toAnswerResponse(
+    answer: Answer,
+    userVote: number = 0,
+  ): AnswerResponseDto {
     return {
       id: answer.id,
       content: answer.content,

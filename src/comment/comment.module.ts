@@ -7,10 +7,7 @@ import { CommentService } from "./comment.service";
 import { BadgeModule } from "../badge/badge.module";
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Comment, Answer]),
-    BadgeModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Comment, Answer]), BadgeModule],
   controllers: [CommentController],
   providers: [CommentService],
 })

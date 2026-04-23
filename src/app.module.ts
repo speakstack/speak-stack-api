@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { APP_GUARD } from "@nestjs/core";
@@ -34,6 +39,10 @@ import { UserBadge } from "./badge/entities/user-badge.entity";
 import { BadgeModule } from "./badge/badge.module";
 import { LeaderboardModule } from "./leaderboard/leaderboard.module";
 import { FeedModule } from "./feed/feed.module";
+import { Channel } from "./chat/entities/channel.entity";
+import { ChatMessage } from "./chat/entities/chat-message.entity";
+import { ChatMessageAttachment } from "./chat/entities/chat-message-attachment.entity";
+import { ChatModule } from "./chat/chat.module";
 import { LoggerModule } from "./common/logger/logger.module";
 import { RequestContextMiddleware } from "./common/logger/request-context.middleware";
 import { HttpLoggerMiddleware } from "./common/logger/http-logger.middleware";
@@ -64,7 +73,26 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
         username: configService.get<string>("database.username"),
         password: configService.get<string>("database.password"),
         database: configService.get<string>("database.database"),
-        entities: [User, Tag, Post, PostAttachment, Answer, ReputationHistory, Language, UserLanguage, PostVote, AnswerVote, EmailVerification, Comment, Level, Badge, UserBadge],
+        entities: [
+          User,
+          Tag,
+          Post,
+          PostAttachment,
+          Answer,
+          ReputationHistory,
+          Language,
+          UserLanguage,
+          PostVote,
+          AnswerVote,
+          EmailVerification,
+          Comment,
+          Level,
+          Badge,
+          UserBadge,
+          Channel,
+          ChatMessage,
+          ChatMessageAttachment,
+        ],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: Bun.env.NODE_ENV !== "production",
         logging: ["error", "warn"],
@@ -86,6 +114,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     LevelModule,
     BadgeModule,
     LeaderboardModule,
+    ChatModule,
   ],
   providers: [
     {
@@ -97,7 +126,11 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
-      .apply(RequestContextMiddleware, HttpLoggerMiddleware, HttpMetricsMiddleware)
+      .apply(
+        RequestContextMiddleware,
+        HttpLoggerMiddleware,
+        HttpMetricsMiddleware,
+      )
       .exclude(
         { path: "health", method: RequestMethod.ALL },
         { path: "docs", method: RequestMethod.ALL },

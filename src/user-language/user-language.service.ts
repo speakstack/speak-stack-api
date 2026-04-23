@@ -122,10 +122,22 @@ export class UserLanguageService {
       throw new AppException(ErrorCode.USER_LANGUAGE_ALREADY_EXISTS);
     }
 
-    const LIMITS: Record<UserLanguageRelation, { max: number; error: ErrorCode }> = {
-      [UserLanguageRelation.NATIVE]: { max: 1, error: ErrorCode.NATIVE_LANGUAGE_LIMIT },
-      [UserLanguageRelation.LEARNING]: { max: 5, error: ErrorCode.LEARNING_LANGUAGE_LIMIT },
-      [UserLanguageRelation.CAN_HELP]: { max: 5, error: ErrorCode.CAN_HELP_LANGUAGE_LIMIT },
+    const LIMITS: Record<
+      UserLanguageRelation,
+      { max: number; error: ErrorCode }
+    > = {
+      [UserLanguageRelation.NATIVE]: {
+        max: 1,
+        error: ErrorCode.NATIVE_LANGUAGE_LIMIT,
+      },
+      [UserLanguageRelation.LEARNING]: {
+        max: 5,
+        error: ErrorCode.LEARNING_LANGUAGE_LIMIT,
+      },
+      [UserLanguageRelation.CAN_HELP]: {
+        max: 5,
+        error: ErrorCode.CAN_HELP_LANGUAGE_LIMIT,
+      },
     };
 
     const { max, error } = LIMITS[relation];

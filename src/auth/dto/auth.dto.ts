@@ -28,13 +28,17 @@ export class SignUpDto {
   @IsNotEmpty({ message: "Verification ID is required" })
   verificationId: string;
 
-  @ApiProperty({ description: "Unique username (required for new users)", required: false })
+  @ApiProperty({
+    description: "Unique username (required for new users)",
+    required: false,
+  })
   @IsOptional()
   @IsString({ message: "Username must be a string" })
   @MinLength(3, { message: "Username must be at least 3 characters long" })
   @MaxLength(20, { message: "Username must not exceed 20 characters" })
   @Matches(/^[a-z0-9_]+$/, {
-    message: "Username can only contain lowercase letters, numbers, and underscores",
+    message:
+      "Username can only contain lowercase letters, numbers, and underscores",
   })
   username?: string;
 
@@ -97,11 +101,20 @@ export class UserProfileDto {
   @ApiProperty({ description: "Current level" })
   level: { id: number; name: string; minReputation: number };
 
-  @ApiPropertyOptional({ description: "Next level threshold (null if at max level)", nullable: true })
+  @ApiPropertyOptional({
+    description: "Next level threshold (null if at max level)",
+    nullable: true,
+  })
   nextLevel: { id: number; name: string; minReputation: number } | null;
 
   @ApiProperty({ description: "Badges earned by the user" })
-  badges: { id: string; name: string; slug: string; description: string; awardedAt: Date }[];
+  badges: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+    awardedAt: Date;
+  }[];
 
   @ApiProperty({ description: "Account creation timestamp" })
   createdAt: Date;
@@ -154,6 +167,8 @@ export class VerifyOtpResponseDto {
   @ApiProperty({ description: "Verification ID to use in sign-up" })
   verificationId: string;
 
-  @ApiProperty({ description: "Whether the email belongs to an existing account" })
+  @ApiProperty({
+    description: "Whether the email belongs to an existing account",
+  })
   isExistingUser: boolean;
 }

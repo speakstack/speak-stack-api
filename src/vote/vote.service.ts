@@ -103,7 +103,12 @@ export class VoteService {
             change: POST_UPVOTE_REP,
             relatedPostId: postId,
           });
-          await manager.increment(User, { id: post.authorId }, "upvotesReceived", 1);
+          await manager.increment(
+            User,
+            { id: post.authorId },
+            "upvotesReceived",
+            1,
+          );
           await this.badgeService.checkAndAwardBadges(
             post.authorId,
             [BadgeTriggerType.UPVOTES_RECEIVED],
@@ -237,12 +242,7 @@ export class VoteService {
             manager,
           );
         } else if (finalValue === -1) {
-          await manager.increment(
-            Answer,
-            { id: answerId },
-            "downvoteCount",
-            1,
-          );
+          await manager.increment(Answer, { id: answerId }, "downvoteCount", 1);
         }
 
         if (existingVote) {
@@ -283,10 +283,7 @@ export class VoteService {
    * Get the current user's vote value for a post.
    * Returns 0 if no vote exists.
    */
-  async getUserPostVote(
-    userId: string,
-    postId: string,
-  ): Promise<number> {
+  async getUserPostVote(userId: string, postId: string): Promise<number> {
     const vote = await this.dataSource.manager.findOne(PostVote, {
       where: { userId, postId },
       select: ["value"],

@@ -6,6 +6,9 @@ export class FeedResponseDto {
   @ApiProperty({ type: [PostResponseDto] })
   posts: PostResponseDto[];
 
-  @ApiProperty({ description: "Cursor for next page, null if no more results", nullable: true })
+  @ApiProperty({
+    description: "Cursor for next page, null if no more results",
+    nullable: true,
+  })
   nextCursor: string | null;
 }

@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../user/entities/user.entity';
-import { ReputationHistory } from '../reputation/entities/reputation-history.entity';
-import { Post } from '../post/entities/post.entity';
-import { Answer } from '../answer/entities/answer.entity';
-import { Tag } from '../tag/entities/tag.entity';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { User } from "../user/entities/user.entity";
+import { ReputationHistory } from "../reputation/entities/reputation-history.entity";
+import { Post } from "../post/entities/post.entity";
+import { Answer } from "../answer/entities/answer.entity";
+import { Tag } from "../tag/entities/tag.entity";
 import {
   LeaderboardPeriod,
   LeaderboardResponseDto,
   TagChampionUserDto,
   TagChampionsResponseDto,
-} from './dto/leaderboard.dto';
+} from "./dto/leaderboard.dto";
 
 type RankRow = {
   userId: string;
@@ -36,9 +36,11 @@ export class LeaderboardService {
     private readonly tagRepo: Repository<Tag>,
   ) {}
 
-  async getLeaderboard(period: LeaderboardPeriod): Promise<LeaderboardResponseDto> {
-    const validPeriods: LeaderboardPeriod[] = ['all_time', 'weekly', 'monthly'];
-    if (!validPeriods.includes(period)) period = 'all_time';
+  async getLeaderboard(
+    period: LeaderboardPeriod,
+  ): Promise<LeaderboardResponseDto> {
+    const validPeriods: LeaderboardPeriod[] = ["all_time", "weekly", "monthly"];
+    if (!validPeriods.includes(period)) period = "all_time";
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -69,12 +71,14 @@ export class LeaderboardService {
 
   async getTagChampions(): Promise<TagChampionsResponseDto> {
     const tags = await this.tagRepo.find({
-      order: { postsCount: 'DESC' },
+      order: { postsCount: "DESC" },
       take: 5,
-      select: ['id', 'name', 'slug', 'color'],
+      select: ["id", "name", "slug", "color"],
     });
 
-    const champions = await Promise.all(tags.map(tag => this.getTagChampion(tag.id)));
+    const champions = await Promise.all(
+      tags.map((tag) => this.getTagChampion(tag.id)),
+    );
 
     return {
       data: tags.map((tag, i) => ({
@@ -87,42 +91,49 @@ export class LeaderboardService {
     };
   }
 
-  private async getTagChampion(tagId: string): Promise<TagChampionUserDto | null> {
+  private async getTagChampion(
+    tagId: string,
+  ): Promise<TagChampionUserDto | null> {
     const [postRows, answerRows] = await Promise.all([
       this.postRepo
-        .createQueryBuilder('p')
-        .select('p.authorId', 'userId')
-        .addSelect('COUNT(p.id)', 'cnt')
-        .innerJoin('p.tags', 'tag')
-        .where('tag.id = :tagId', { tagId })
-        .andWhere('p.isDeleted = false')
-        .groupBy('p.authorId')
+        .createQueryBuilder("p")
+        .select("p.authorId", "userId")
+        .addSelect("COUNT(p.id)", "cnt")
+        .innerJoin("p.tags", "tag")
+        .where("tag.id = :tagId", { tagId })
+        .andWhere("p.isDeleted = false")
+        .groupBy("p.authorId")
         .getRawMany<{ userId: string; cnt: string }>(),
       this.answerRepo
-        .createQueryBuilder('a')
-        .select('a.authorId', 'userId')
-        .addSelect('COUNT(a.id)', 'cnt')
-        .innerJoin('a.post', 'p')
-        .innerJoin('p.tags', 'tag')
-        .where('tag.id = :tagId', { tagId })
-        .andWhere('a.isDeleted = false')
-        .andWhere('p.isDeleted = false')
-        .groupBy('a.authorId')
+        .createQueryBuilder("a")
+        .select("a.authorId", "userId")
+        .addSelect("COUNT(a.id)", "cnt")
+        .innerJoin("a.post", "p")
+        .innerJoin("p.tags", "tag")
+        .where("tag.id = :tagId", { tagId })
+        .andWhere("a.isDeleted = false")
+        .andWhere("p.isDeleted = false")
+        .groupBy("a.authorId")
         .getRawMany<{ userId: string; cnt: string }>(),
     ]);
 
     const totalMap = new Map<string, number>();
     for (const row of [...postRows, ...answerRows]) {
-      totalMap.set(row.userId, (totalMap.get(row.userId) ?? 0) + Number(row.cnt));
+      totalMap.set(
+        row.userId,
+        (totalMap.get(row.userId) ?? 0) + Number(row.cnt),
+      );
     }
 
     if (totalMap.size === 0) return null;
 
-    const [topUserId, topCount] = [...totalMap.entries()].sort((a, b) => b[1] - a[1])[0];
+    const [topUserId, topCount] = [...totalMap.entries()].sort(
+      (a, b) => b[1] - a[1],
+    )[0];
 
     const user = await this.userRepo.findOne({
       where: { id: topUserId, isActive: true },
-      select: ['id', 'username', 'displayName', 'avatarUrl'],
+      select: ["id", "username", "displayName", "avatarUrl"],
     });
 
     if (!user) return null;
@@ -141,22 +152,25 @@ export class LeaderboardService {
     cutoff: Date | null,
     limit: number,
   ): Promise<RankRow[]> {
-    if (period === 'all_time') {
+    if (period === "all_time") {
       return this.fetchAllTimeRanked(cutoff, limit);
     }
-    const days = period === 'weekly' ? 7 : 30;
+    const days = period === "weekly" ? 7 : 30;
     return this.fetchPeriodRanked(days, cutoff, limit);
   }
 
-  private async fetchAllTimeRanked(cutoff: Date | null, limit: number): Promise<RankRow[]> {
+  private async fetchAllTimeRanked(
+    cutoff: Date | null,
+    limit: number,
+  ): Promise<RankRow[]> {
     if (cutoff === null) {
       const users = await this.userRepo.find({
         where: { isActive: true },
-        order: { reputation: 'DESC' },
+        order: { reputation: "DESC" },
         take: limit,
-        select: ['id', 'username', 'displayName', 'avatarUrl', 'reputation'],
+        select: ["id", "username", "displayName", "avatarUrl", "reputation"],
       });
-      return users.map(u => ({
+      return users.map((u) => ({
         userId: u.id,
         username: u.username,
         displayName: u.displayName,
@@ -167,25 +181,25 @@ export class LeaderboardService {
 
     const users = await this.userRepo.find({
       where: { isActive: true },
-      order: { reputation: 'DESC' },
+      order: { reputation: "DESC" },
       take: limit * 2,
-      select: ['id', 'username', 'displayName', 'avatarUrl', 'reputation'],
+      select: ["id", "username", "displayName", "avatarUrl", "reputation"],
     });
     if (users.length === 0) return [];
 
     const gains = await this.repHistoryRepo
-      .createQueryBuilder('rh')
-      .select('rh.userId', 'userId')
-      .addSelect('SUM(rh.change)', 'gains')
-      .where('rh.userId IN (:...ids)', { ids: users.map(u => u.id) })
-      .andWhere('rh.createdAt >= :cutoff', { cutoff })
-      .groupBy('rh.userId')
+      .createQueryBuilder("rh")
+      .select("rh.userId", "userId")
+      .addSelect("SUM(rh.change)", "gains")
+      .where("rh.userId IN (:...ids)", { ids: users.map((u) => u.id) })
+      .andWhere("rh.createdAt >= :cutoff", { cutoff })
+      .groupBy("rh.userId")
       .getRawMany<{ userId: string; gains: string }>();
 
-    const gainsMap = new Map(gains.map(g => [g.userId, Number(g.gains)]));
+    const gainsMap = new Map(gains.map((g) => [g.userId, Number(g.gains)]));
 
     return users
-      .map(u => ({
+      .map((u) => ({
         userId: u.id,
         username: u.username,
         displayName: u.displayName,
@@ -205,21 +219,27 @@ export class LeaderboardService {
     const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
 
     const rows = await this.repHistoryRepo
-      .createQueryBuilder('rh')
-      .select('rh.userId', 'userId')
-      .addSelect('SUM(rh.change)', 'score')
-      .addSelect('u.username', 'username')
-      .addSelect('u.displayName', 'displayName')
-      .addSelect('u.avatarUrl', 'avatarUrl')
-      .innerJoin(User, 'u', 'u.id = rh.userId AND u.isActive = true')
-      .where('rh.createdAt >= :start', { start })
-      .andWhere('rh.createdAt < :end', { end })
-      .groupBy('rh.userId, u.username, u.displayName, u.avatarUrl')
-      .orderBy('SUM(rh.change)', 'DESC')
+      .createQueryBuilder("rh")
+      .select("rh.userId", "userId")
+      .addSelect("SUM(rh.change)", "score")
+      .addSelect("u.username", "username")
+      .addSelect("u.displayName", "displayName")
+      .addSelect("u.avatarUrl", "avatarUrl")
+      .innerJoin(User, "u", "u.id = rh.userId AND u.isActive = true")
+      .where("rh.createdAt >= :start", { start })
+      .andWhere("rh.createdAt < :end", { end })
+      .groupBy("rh.userId, u.username, u.displayName, u.avatarUrl")
+      .orderBy("SUM(rh.change)", "DESC")
       .limit(limit)
-      .getRawMany<{ userId: string; score: string; username: string; displayName: string | null; avatarUrl: string | null }>();
+      .getRawMany<{
+        userId: string;
+        score: string;
+        username: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+      }>();
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       userId: r.userId,
       username: r.username,
       displayName: r.displayName,

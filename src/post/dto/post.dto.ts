@@ -112,7 +112,10 @@ export class ListPostsQueryDto {
   @IsEnum(PostType, { message: POST_TYPE_MESSAGE })
   type?: PostType;
 
-  @ApiPropertyOptional({ description: "Filter by post status", enum: PostStatus })
+  @ApiPropertyOptional({
+    description: "Filter by post status",
+    enum: PostStatus,
+  })
   @IsOptional()
   @IsEnum(PostStatus, {
     message: "Status must be one of: open, answered, closed",
@@ -136,7 +139,9 @@ export class ListPostsQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: "Filter by target language BCP 47 code (e.g. 'ja')" })
+  @ApiPropertyOptional({
+    description: "Filter by target language BCP 47 code (e.g. 'ja')",
+  })
   @IsOptional()
   @IsString()
   language?: string;
@@ -220,7 +225,8 @@ export class PostDetailResponseDto {
   @ApiProperty({ type: [PostTagDto] }) tags: PostTagDto[];
   @ApiProperty() targetLanguage: PostLanguageDto;
   @ApiProperty({ nullable: true }) acceptedAnswerId: string | null;
-  @ApiProperty({ type: [PostAttachmentResponseDto] }) attachments: PostAttachmentResponseDto[];
+  @ApiProperty({ type: [PostAttachmentResponseDto] })
+  attachments: PostAttachmentResponseDto[];
   @ApiProperty() score: number;
   @ApiProperty() answerCount: number;
   @ApiProperty() viewCount: number;

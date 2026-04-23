@@ -151,9 +151,17 @@ export class UserService {
       hasPassword: user.passwordHash !== null,
       hasUsernameSet: user.hasUsernameSet,
       reputation: user.reputation,
-      level: { id: level.id, name: level.name, minReputation: level.minReputation },
+      level: {
+        id: level.id,
+        name: level.name,
+        minReputation: level.minReputation,
+      },
       nextLevel: nextLevel
-        ? { id: nextLevel.id, name: nextLevel.name, minReputation: nextLevel.minReputation }
+        ? {
+            id: nextLevel.id,
+            name: nextLevel.name,
+            minReputation: nextLevel.minReputation,
+          }
         : null,
       badges: userBadges.map((ub) => ({
         id: ub.badge.id,

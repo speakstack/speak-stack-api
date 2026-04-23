@@ -8,7 +8,11 @@ import { LevelModule } from "../level/level.module";
 import { BadgeModule } from "../badge/badge.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserLanguage]), LevelModule, BadgeModule],
+  imports: [
+    TypeOrmModule.forFeature([User, UserLanguage]),
+    LevelModule,
+    BadgeModule,
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [TypeOrmModule],

@@ -230,6 +230,23 @@ const ERROR_CODE_DEFINITIONS = {
     httpStatus: HttpStatus.BAD_REQUEST,
     message: "Vote value must be 1, -1, or 0",
   },
+  // Chat errors
+  CHANNEL_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Channel not found",
+  },
+  CHANNEL_SLUG_TAKEN: {
+    httpStatus: HttpStatus.CONFLICT,
+    message: "Channel slug is already taken",
+  },
+  CHAT_MESSAGE_NOT_FOUND: {
+    httpStatus: HttpStatus.NOT_FOUND,
+    message: "Chat message not found",
+  },
+  CHAT_MESSAGE_EMPTY: {
+    httpStatus: HttpStatus.BAD_REQUEST,
+    message: "Message must have content or at least one attachment",
+  },
   // Server errors
   INTERNAL_ERROR: {
     httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -255,7 +272,9 @@ export class ErrorCode {
   );
   static readonly TOKEN_EXPIRED = new ErrorCode("TOKEN_EXPIRED");
   static readonly GOOGLE_AUTH_FAILED = new ErrorCode("GOOGLE_AUTH_FAILED");
-  static readonly GOOGLE_AUTH_CONFIG_ERROR = new ErrorCode("GOOGLE_AUTH_CONFIG_ERROR");
+  static readonly GOOGLE_AUTH_CONFIG_ERROR = new ErrorCode(
+    "GOOGLE_AUTH_CONFIG_ERROR",
+  );
   static readonly PASSWORD_NOT_SET = new ErrorCode("PASSWORD_NOT_SET");
   static readonly PASSWORD_ALREADY_SET = new ErrorCode("PASSWORD_ALREADY_SET");
   // OTP verification errors
@@ -263,7 +282,9 @@ export class ErrorCode {
   static readonly OTP_RATE_LIMITED = new ErrorCode("OTP_RATE_LIMITED");
   static readonly OTP_EXPIRED = new ErrorCode("OTP_EXPIRED");
   static readonly OTP_INVALID = new ErrorCode("OTP_INVALID");
-  static readonly OTP_MAX_ATTEMPTS_EXCEEDED = new ErrorCode("OTP_MAX_ATTEMPTS_EXCEEDED");
+  static readonly OTP_MAX_ATTEMPTS_EXCEEDED = new ErrorCode(
+    "OTP_MAX_ATTEMPTS_EXCEEDED",
+  );
   static readonly INVALID_VERIFICATION = new ErrorCode("INVALID_VERIFICATION");
   static readonly EMAIL_NOT_VERIFIED = new ErrorCode("EMAIL_NOT_VERIFIED");
   static readonly MAIL_SERVICE_ERROR = new ErrorCode("MAIL_SERVICE_ERROR");
@@ -335,8 +356,17 @@ export class ErrorCode {
   static readonly GRAMMAR_API_ERROR = new ErrorCode("GRAMMAR_API_ERROR");
   static readonly GRAMMAR_RATE_LIMITED = new ErrorCode("GRAMMAR_RATE_LIMITED");
   // Vote errors
-  static readonly SELF_VOTE_NOT_ALLOWED = new ErrorCode("SELF_VOTE_NOT_ALLOWED");
+  static readonly SELF_VOTE_NOT_ALLOWED = new ErrorCode(
+    "SELF_VOTE_NOT_ALLOWED",
+  );
   static readonly INVALID_VOTE_VALUE = new ErrorCode("INVALID_VOTE_VALUE");
+  // Chat errors
+  static readonly CHANNEL_NOT_FOUND = new ErrorCode("CHANNEL_NOT_FOUND");
+  static readonly CHANNEL_SLUG_TAKEN = new ErrorCode("CHANNEL_SLUG_TAKEN");
+  static readonly CHAT_MESSAGE_NOT_FOUND = new ErrorCode(
+    "CHAT_MESSAGE_NOT_FOUND",
+  );
+  static readonly CHAT_MESSAGE_EMPTY = new ErrorCode("CHAT_MESSAGE_EMPTY");
   // Server errors
   static readonly INTERNAL_ERROR = new ErrorCode("INTERNAL_ERROR");
 

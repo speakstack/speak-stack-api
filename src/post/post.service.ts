@@ -5,7 +5,10 @@ import { randomUUID } from "crypto";
 import * as path from "path";
 import * as fs from "fs/promises";
 import { Post, PostStatus } from "./entities/post.entity";
-import { PostAttachment, AttachmentType } from "./entities/post-attachment.entity";
+import {
+  PostAttachment,
+  AttachmentType,
+} from "./entities/post-attachment.entity";
 import { Answer } from "../answer/entities/answer.entity";
 import { Tag } from "../tag/entities/tag.entity";
 import { User } from "../user/entities/user.entity";
@@ -45,7 +48,8 @@ const ALLOWED_MIME_TYPES: Record<string, AttachmentType> = {
   "image/gif": AttachmentType.IMAGE,
   "application/pdf": AttachmentType.DOCUMENT,
   "application/msword": AttachmentType.DOCUMENT,
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": AttachmentType.DOCUMENT,
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    AttachmentType.DOCUMENT,
   "text/plain": AttachmentType.DOCUMENT,
   "audio/mpeg": AttachmentType.AUDIO,
   "audio/wav": AttachmentType.AUDIO,
@@ -110,7 +114,12 @@ export class PostService {
       }
 
       await manager.increment(User, { id: userId }, "postsCount", 1);
-      await manager.increment(User, { id: userId }, "reputation", POST_CREATED_REP);
+      await manager.increment(
+        User,
+        { id: userId },
+        "reputation",
+        POST_CREATED_REP,
+      );
 
       await manager.save(ReputationHistory, {
         userId,
@@ -133,7 +142,10 @@ export class PostService {
     return this.toPostResponse(post);
   }
 
-  async listPosts(query: ListPostsQueryDto, userId?: string): Promise<PostListResponseDto> {
+  async listPosts(
+    query: ListPostsQueryDto,
+    userId?: string,
+  ): Promise<PostListResponseDto> {
     const page = Math.max(1, query.page || 1);
     const limit = Math.min(50, Math.max(1, query.limit || 20));
     const offset = (page - 1) * limit;
@@ -194,7 +206,9 @@ export class PostService {
     const [posts, total] = await qb.skip(offset).take(limit).getManyAndCount();
 
     const postIds = posts.map((p) => p.id);
-    const voteMap = userId ? await this.voteService.getUserPostVotes(userId, postIds) : {};
+    const voteMap = userId
+      ? await this.voteService.getUserPostVotes(userId, postIds)
+      : {};
 
     return {
       posts: posts.map((p) => this.toPostResponse(p, true, voteMap[p.id] ?? 0)),
@@ -205,7 +219,9 @@ export class PostService {
   async getPost(id: string, userId?: string): Promise<PostDetailResponseDto> {
     const post = await this.findPostWithRelations(id);
     this.postRepository.increment({ id }, "viewCount", 1).catch(() => {});
-    const userVote = userId ? await this.voteService.getUserPostVote(userId, id) : 0;
+    const userVote = userId
+      ? await this.voteService.getUserPostVote(userId, id)
+      : 0;
     return this.toPostDetailResponse(post, userVote);
   }
 
@@ -296,7 +312,9 @@ export class PostService {
           await manager
             .createQueryBuilder()
             .update(User)
-            .set({ answersCount: () => `GREATEST(0, answers_count - ${count})` })
+            .set({
+              answersCount: () => `GREATEST(0, answers_count - ${count})`,
+            })
             .where("id = :id", { id: authorId })
             .execute();
         }
@@ -323,8 +341,7 @@ export class PostService {
         .createQueryBuilder()
         .update(User)
         .set({
-          reputation: () =>
-            `GREATEST(0, reputation + ${POST_DELETED_REP})`,
+          reputation: () => `GREATEST(0, reputation + ${POST_DELETED_REP})`,
         })
         .where("id = :id", { id: post.authorId })
         .execute();
@@ -405,7 +422,10 @@ export class PostService {
     };
   }
 
-  private toPostDetailResponse(post: Post, userVote: number = 0): PostDetailResponseDto {
+  private toPostDetailResponse(
+    post: Post,
+    userVote: number = 0,
+  ): PostDetailResponseDto {
     return {
       id: post.id,
       type: post.type,

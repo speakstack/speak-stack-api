@@ -1,4 +1,4 @@
-export type LeaderboardPeriod = 'all_time' | 'weekly' | 'monthly';
+export type LeaderboardPeriod = "all_time" | "weekly" | "monthly";
 
 export class LeaderboardEntryDto {
   rank: number;

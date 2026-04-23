@@ -47,8 +47,14 @@ export class FeedService {
     private readonly voteService: VoteService,
   ) {}
 
-  async getForYou(userId: string, query: FeedQueryDto): Promise<FeedResponseDto> {
-    const limit = Math.min(MAX_FEED_LIMIT, Math.max(1, query.limit || DEFAULT_FEED_LIMIT));
+  async getForYou(
+    userId: string,
+    query: FeedQueryDto,
+  ): Promise<FeedResponseDto> {
+    const limit = Math.min(
+      MAX_FEED_LIMIT,
+      Math.max(1, query.limit || DEFAULT_FEED_LIMIT),
+    );
 
     let cursorScore: number | null = null;
     let cursorId: string | null = null;
@@ -67,7 +73,9 @@ export class FeedService {
         cursorId = id;
         pinnedEpoch = epoch;
       } catch {
-        throw new AppException(ErrorCode.VALIDATION_ERROR, { cursor: "Invalid cursor" });
+        throw new AppException(ErrorCode.VALIDATION_ERROR, {
+          cursor: "Invalid cursor",
+        });
       }
     }
 
@@ -181,31 +189,33 @@ export class FeedService {
     // Fetch user votes
     const voteMap = await this.voteService.getUserPostVotes(userId, postIds);
 
-    const posts: PostResponseDto[] = resultRows.map((r: Record<string, unknown>) => ({
-      id: r.id as string,
-      type: r.type as string,
-      status: r.status as string,
-      title: r.title as string,
-      content: this.truncateContent(r.content as string),
-      author: {
-        id: r.author_id as string,
-        username: r.author_username as string,
-        displayName: (r.author_displayName as string) || null,
-        avatarUrl: (r.author_avatarUrl as string) || null,
-      },
-      tags: tagMap[r.id as string] || [],
-      targetLanguage: {
-        id: r.lang_id as string,
-        code: r.lang_code as string,
-        name: r.lang_name as string,
-      },
-      score: Number(r.score),
-      userVote: voteMap[r.id as string] ?? 0,
-      answerCount: Number(r.answerCount),
-      viewCount: Number(r.viewCount),
-      createdAt: new Date(r.createdAt as string),
-      updatedAt: new Date(r.updatedAt as string),
-    }));
+    const posts: PostResponseDto[] = resultRows.map(
+      (r: Record<string, unknown>) => ({
+        id: r.id as string,
+        type: r.type as string,
+        status: r.status as string,
+        title: r.title as string,
+        content: this.truncateContent(r.content as string),
+        author: {
+          id: r.author_id as string,
+          username: r.author_username as string,
+          displayName: (r.author_displayName as string) || null,
+          avatarUrl: (r.author_avatarUrl as string) || null,
+        },
+        tags: tagMap[r.id as string] || [],
+        targetLanguage: {
+          id: r.lang_id as string,
+          code: r.lang_code as string,
+          name: r.lang_name as string,
+        },
+        score: Number(r.score),
+        userVote: voteMap[r.id as string] ?? 0,
+        answerCount: Number(r.answerCount),
+        viewCount: Number(r.viewCount),
+        createdAt: new Date(r.createdAt as string),
+        updatedAt: new Date(r.updatedAt as string),
+      }),
+    );
 
     let nextCursor: string | null = null;
     if (hasMore && resultRows.length > 0) {
@@ -233,7 +243,9 @@ export class FeedService {
 
   private async getTagsForPosts(
     postIds: string[],
-  ): Promise<Record<string, { id: string; name: string; slug: string; color: string }[]>> {
+  ): Promise<
+    Record<string, { id: string; name: string; slug: string; color: string }[]>
+  > {
     if (postIds.length === 0) return {};
 
     const rows = await this.postRepo
@@ -243,7 +255,10 @@ export class FeedService {
       .select(["p.id", "t.id", "t.name", "t.slug", "t.color"])
       .getMany();
 
-    const map: Record<string, { id: string; name: string; slug: string; color: string }[]> = {};
+    const map: Record<
+      string,
+      { id: string; name: string; slug: string; color: string }[]
+    > = {};
     for (const post of rows) {
       map[post.id] = post.tags.map((t) => ({
         id: t.id,

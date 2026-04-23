@@ -13,7 +13,14 @@ import { FeedService } from "./feed.service";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Post, UserLanguage, PostVote, Answer, Comment, Tag]),
+    TypeOrmModule.forFeature([
+      Post,
+      UserLanguage,
+      PostVote,
+      Answer,
+      Comment,
+      Tag,
+    ]),
     VoteModule,
   ],
   controllers: [FeedController],
