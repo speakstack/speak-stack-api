@@ -11,7 +11,7 @@ import {
 } from "typeorm";
 import { Channel } from "./channel.entity";
 import { User } from "../../user/entities/user.entity";
-import { ChatMessageAttachment } from "./chat-message-attachment.entity";
+import type { ChatMessageAttachment } from "./chat-message-attachment.entity";
 
 @Entity("chat_messages")
 @Index("idx_chat_messages_channel_created", ["channelId", "createdAt"])
@@ -36,7 +36,11 @@ export class ChatMessage {
   @Column({ type: "text" })
   content: string;
 
-  @OneToMany(() => ChatMessageAttachment, (a) => a.message)
+  @OneToMany(
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    () => require("./chat-message-attachment.entity").ChatMessageAttachment,
+    (a: ChatMessageAttachment) => a.message,
+  )
   attachments: ChatMessageAttachment[];
 
   @Column({ type: "timestamptz", nullable: true })

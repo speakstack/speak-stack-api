@@ -6,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { ChatMessage } from "./chat-message.entity";
+import type { ChatMessage } from "./chat-message.entity";
 import { User } from "../../user/entities/user.entity";
 
 @Entity("chat_message_attachments")
@@ -14,11 +14,16 @@ export class ChatMessageAttachment {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ManyToOne(() => ChatMessage, (m) => m.attachments, {
-    eager: false,
-    nullable: true,
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    () => require("./chat-message.entity").ChatMessage,
+    (m: ChatMessage) => m.attachments,
+    {
+      eager: false,
+      nullable: true,
+      onDelete: "CASCADE",
+    },
+  )
   @JoinColumn()
   message: ChatMessage | null;
 
