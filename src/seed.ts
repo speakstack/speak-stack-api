@@ -18,6 +18,9 @@ import {
   LanguageProficiency,
 } from "./user-language/entities/user-language.entity";
 import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
+import { Channel } from "./chat/entities/channel.entity";
+import "./chat/entities/chat-message-attachment.entity";
+import { ChatMessage } from "./chat/entities/chat-message.entity";
 
 // ─── Languages ───────────────────────────────────────────────────────────────
 
@@ -1889,6 +1892,310 @@ const REPUTATION_EVENTS: ReputationSeed[] = [
   },
 ];
 
+// ─── Channels ────────────────────────────────────────────────────────────────
+
+const CHANNELS: {
+  slug: string;
+  name: string;
+  description: string | null;
+  languageCode: string | null;
+  createdByUsername: string;
+}[] = [
+  {
+    slug: "general",
+    name: "General",
+    description: "General discussion for all language learners",
+    languageCode: null,
+    createdByUsername: "admin",
+  },
+  {
+    slug: "english-chat",
+    name: "English Chat",
+    description: "Practice your English in a friendly environment",
+    languageCode: "en",
+    createdByUsername: "admin",
+  },
+  {
+    slug: "japanese-lounge",
+    name: "Japanese Lounge",
+    description: "日本語の練習をしましょう！Chat and practice Japanese here",
+    languageCode: "ja",
+    createdByUsername: "mod_linh",
+  },
+  {
+    slug: "korean-corner",
+    name: "Korean Corner",
+    description: "한국어를 연습하는 공간입니다 — Practice Korean here",
+    languageCode: "ko",
+    createdByUsername: "mod_linh",
+  },
+  {
+    slug: "spanish-plaza",
+    name: "Spanish Plaza",
+    description: "¡Practica tu español aquí! A place to practice Spanish",
+    languageCode: "es",
+    createdByUsername: "carlos_garcia",
+  },
+  {
+    slug: "french-cafe",
+    name: "French Café",
+    description: "Discutez en français et pratiquez avec d'autres apprenants",
+    languageCode: "fr",
+    createdByUsername: "marie_dupont",
+  },
+  {
+    slug: "vietnamese-room",
+    name: "Vietnamese Room",
+    description: "Phòng luyện tập tiếng Việt cho người học",
+    languageCode: "vi",
+    createdByUsername: "thanh_pham",
+  },
+];
+
+// ─── Channel Messages ─────────────────────────────────────────────────────────
+
+const CHANNEL_MESSAGES: {
+  channelSlug: string;
+  username: string;
+  content: string;
+}[] = [
+  // general
+  {
+    channelSlug: "general",
+    username: "admin",
+    content:
+      "Welcome to SpeakStack! This is the general chat — say hi and introduce yourself 👋",
+  },
+  {
+    channelSlug: "general",
+    username: "yuki_tanaka",
+    content:
+      "Hi everyone! I'm Yuki, native Japanese speaker learning English. Glad to be here!",
+  },
+  {
+    channelSlug: "general",
+    username: "marie_dupont",
+    content:
+      "Bonjour from Paris! I speak French and English, here to help anyone learning French 🇫🇷",
+  },
+  {
+    channelSlug: "general",
+    username: "carlos_garcia",
+    content: "Hola! Spanish speaker from Madrid, learning English and Japanese!",
+  },
+  {
+    channelSlug: "general",
+    username: "thanh_pham",
+    content:
+      "Chào mọi người! Vietnamese speaker here, practising English every day 🌟",
+  },
+  {
+    channelSlug: "general",
+    username: "raj_patel",
+    content:
+      "Hey all! From India, fluent in Hindi and English. Happy to help Hindi learners!",
+  },
+  // english-chat
+  {
+    channelSlug: "english-chat",
+    username: "mike_johnson",
+    content:
+      "Welcome to the English Chat room! Feel free to practice here — no judgment, all levels welcome.",
+  },
+  {
+    channelSlug: "english-chat",
+    username: "yuki_tanaka",
+    content:
+      'Quick question — is "I\'ve been waiting since 2 hours" correct? Or should it be "for 2 hours"?',
+  },
+  {
+    channelSlug: "english-chat",
+    username: "mike_johnson",
+    content:
+      '"For 2 hours" is correct! Use "for" with a duration, "since" with a specific point in time (since 3pm, since Monday).',
+  },
+  {
+    channelSlug: "english-chat",
+    username: "yuki_tanaka",
+    content: "Oh I see! Thank you Mike, that makes it much clearer 😊",
+  },
+  {
+    channelSlug: "english-chat",
+    username: "soo_jin",
+    content:
+      "Can anyone explain the difference between \"make\" and \"do\"? I always mix them up!",
+  },
+  {
+    channelSlug: "english-chat",
+    username: "anna_schmidt",
+    content:
+      "\"Make\" is for creating/producing something (make a cake, make a decision). \"Do\" is for tasks/activities (do homework, do exercise). There are exceptions but that's the general rule!",
+  },
+  {
+    channelSlug: "english-chat",
+    username: "thanh_pham",
+    content: "This channel is so helpful. I learn something new every day here!",
+  },
+  // japanese-lounge
+  {
+    channelSlug: "japanese-lounge",
+    username: "yuki_tanaka",
+    content:
+      "日本語の練習へようこそ！気軽に話しかけてください。(Welcome to Japanese practice! Feel free to talk anytime.)",
+  },
+  {
+    channelSlug: "japanese-lounge",
+    username: "sakura_ito",
+    content:
+      "みんな、今日の天気はどうですか？東京は晴れています！(How's the weather everyone? It's sunny in Tokyo!)",
+  },
+  {
+    channelSlug: "japanese-lounge",
+    username: "wei_chen",
+    content: "「ちょっと待ってください」と「少し待ってください」の違いは何ですか？",
+  },
+  {
+    channelSlug: "japanese-lounge",
+    username: "yuki_tanaka",
+    content:
+      "どちらも同じ意味ですが、「ちょっと」の方が少しカジュアルです。会話では「ちょっと待って」をよく使います！(Both mean the same, but ちょっと is slightly more casual. In conversation we usually say ちょっと待って!)",
+  },
+  {
+    channelSlug: "japanese-lounge",
+    username: "mike_johnson",
+    content:
+      "I just passed JLPT N3! 合格しました！So happy right now 🎉",
+  },
+  {
+    channelSlug: "japanese-lounge",
+    username: "sakura_ito",
+    content: "おめでとうございます！🎊 N2に向けて頑張ってください！",
+  },
+  // korean-corner
+  {
+    channelSlug: "korean-corner",
+    username: "soo_jin",
+    content:
+      "한국어 연습방에 오신 것을 환영합니다! 편하게 연습하세요 😊 (Welcome to the Korean practice room! Practice comfortably!)",
+  },
+  {
+    channelSlug: "korean-corner",
+    username: "mod_linh",
+    content: "안녕하세요! 저는 베트남 사람인데 한국어를 배우고 있어요. 잘 부탁드립니다!",
+  },
+  {
+    channelSlug: "korean-corner",
+    username: "soo_jin",
+    content:
+      "반갑습니다! 한국어 실력이 정말 좋네요 👍 질문 있으면 언제든지 물어보세요.",
+  },
+  {
+    channelSlug: "korean-corner",
+    username: "yuki_tanaka",
+    content:
+      "日本語と韓国語は似ていると思います。문법 구조가 비슷해서 배우기 편해요!",
+  },
+  // spanish-plaza
+  {
+    channelSlug: "spanish-plaza",
+    username: "carlos_garcia",
+    content:
+      "¡Bienvenidos a la Plaza Española! Aquí podemos practicar español juntos 🇪🇸",
+  },
+  {
+    channelSlug: "spanish-plaza",
+    username: "marie_dupont",
+    content:
+      "Hola! El español y el francés son muy similares. Estoy aprendiendo español ahora.",
+  },
+  {
+    channelSlug: "spanish-plaza",
+    username: "carlos_garcia",
+    content:
+      "¡Sí! Si hablas francés, el español te resultará bastante fácil. ¿Qué parte te resulta más difícil?",
+  },
+  {
+    channelSlug: "spanish-plaza",
+    username: "marie_dupont",
+    content:
+      "El subjuntivo es muy difícil para mí... En francés también existe pero lo uso poco.",
+  },
+  {
+    channelSlug: "spanish-plaza",
+    username: "raj_patel",
+    content:
+      "Hola a todos! I started learning Spanish last month. Any tips for beginners?",
+  },
+  {
+    channelSlug: "spanish-plaza",
+    username: "carlos_garcia",
+    content:
+      "¡Bienvenido Raj! My top tip: don't be afraid to make mistakes. Habla, habla, habla! 😄",
+  },
+  // french-cafe
+  {
+    channelSlug: "french-cafe",
+    username: "marie_dupont",
+    content:
+      "Bienvenue au Café Français ☕ Un endroit pour pratiquer le français ensemble!",
+  },
+  {
+    channelSlug: "french-cafe",
+    username: "anna_schmidt",
+    content:
+      "Bonjour Marie! J'apprends le français depuis six mois. C'est une belle langue!",
+  },
+  {
+    channelSlug: "french-cafe",
+    username: "marie_dupont",
+    content:
+      "Super Anna! Ton français est déjà très bien pour six mois de pratique 🌟",
+  },
+  {
+    channelSlug: "french-cafe",
+    username: "anna_schmidt",
+    content:
+      "Merci! La prononciation est encore difficile pour moi. Le 'r' français est impossible 😅",
+  },
+  {
+    channelSlug: "french-cafe",
+    username: "marie_dupont",
+    content:
+      "Haha, c'est vrai! Le 'r' vient du fond de la gorge. Essaie de gargouiller — comme si tu te rinçais la bouche!",
+  },
+  // vietnamese-room
+  {
+    channelSlug: "vietnamese-room",
+    username: "thanh_pham",
+    content:
+      "Chào mừng đến với phòng tiếng Việt! Cùng nhau luyện tập nhé 🇻🇳",
+  },
+  {
+    channelSlug: "vietnamese-room",
+    username: "mod_linh",
+    content:
+      "Xin chào mọi người! Mình là người Việt Nam, rất vui được giúp các bạn học tiếng Việt.",
+  },
+  {
+    channelSlug: "vietnamese-room",
+    username: "mike_johnson",
+    content:
+      "Xin chào! I'm trying to learn Vietnamese. The tones are really hard for me!",
+  },
+  {
+    channelSlug: "vietnamese-room",
+    username: "thanh_pham",
+    content:
+      "Vietnamese has 6 tones so it takes time, but you'll get it! Try listening to lots of native speech first 🎵",
+  },
+  {
+    channelSlug: "vietnamese-room",
+    username: "mod_linh",
+    content:
+      "Đúng rồi! Lắng nghe nhiều là cách tốt nhất để học thanh điệu. Chúc bạn học tốt Mike!",
+  },
+];
+
 // ─── Seed Function ───────────────────────────────────────────────────────────
 
 async function seed(): Promise<void> {
@@ -1918,6 +2225,8 @@ async function seed(): Promise<void> {
   const userLanguageRepo = ds.getRepository(UserLanguage);
   const levelRepo = ds.getRepository(Level);
   const badgeRepo = ds.getRepository(Badge);
+  const channelRepo = ds.getRepository(Channel);
+  const chatMessageRepo = ds.getRepository(ChatMessage);
 
   // ── Seeding Levels ─────────────────────────────────────────────────────
   console.log("── Seeding Levels ──");
@@ -2249,6 +2558,59 @@ async function seed(): Promise<void> {
   }
   console.log(`Reputation events: ${repCreated} created\n`);
 
+  // ── 9. Channels & Chat Messages ─────────────────────────────────────────
+  console.log("── Seeding Channels ──");
+  const channelMap = new Map<string, Channel>();
+  for (const ch of CHANNELS) {
+    const existing = await channelRepo.findOne({ where: { slug: ch.slug } });
+    if (existing) {
+      channelMap.set(ch.slug, existing);
+      continue;
+    }
+    const createdBy = userMap.get(ch.createdByUsername);
+    if (!createdBy) continue;
+    const saved = await channelRepo.save(
+      channelRepo.create({
+        slug: ch.slug,
+        name: ch.name,
+        description: ch.description,
+        languageId: ch.languageCode
+          ? (languageMap.get(ch.languageCode)?.id ?? null)
+          : null,
+        createdById: createdBy.id,
+        isDeleted: false,
+        deletedAt: null,
+      }),
+    );
+    channelMap.set(ch.slug, saved);
+    console.log(`  + channel: #${ch.slug}`);
+  }
+  console.log(`Channels: ${channelMap.size} total\n`);
+
+  console.log("── Seeding Chat Messages ──");
+  let chatMessagesCreated = 0;
+  for (const msg of CHANNEL_MESSAGES) {
+    const channel = channelMap.get(msg.channelSlug);
+    const user = userMap.get(msg.username);
+    if (!channel || !user) continue;
+    const existing = await chatMessageRepo.findOne({
+      where: { channelId: channel.id, userId: user.id, content: msg.content },
+    });
+    if (existing) continue;
+    await chatMessageRepo.save(
+      chatMessageRepo.create({
+        channelId: channel.id,
+        userId: user.id,
+        content: msg.content,
+        isDeleted: false,
+        deletedAt: null,
+        editedAt: null,
+      }),
+    );
+    chatMessagesCreated++;
+  }
+  console.log(`Chat messages: ${chatMessagesCreated} created\n`);
+
   // ── Summary ─────────────────────────────────────────────────────────────
   console.log("═══════════════════════════════════");
   console.log("  Seed complete!");
@@ -2260,6 +2622,8 @@ async function seed(): Promise<void> {
   console.log(`  Answers:          ${answerEntities.filter(Boolean).length}`);
   console.log(`  Votes:            ${votesCreated}`);
   console.log(`  Reputation:       ${repCreated}`);
+  console.log(`  Channels:         ${channelMap.size}`);
+  console.log(`  Chat messages:    ${chatMessagesCreated}`);
   console.log("═══════════════════════════════════");
 
   await ds.destroy();
