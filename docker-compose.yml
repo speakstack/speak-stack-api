@@ -1,8 +1,9 @@
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: meowsical/speak-stack-api:latest
     container_name: speak-stack-api
     restart: unless-stopped
     ports:

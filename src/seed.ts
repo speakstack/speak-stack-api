@@ -2410,6 +2410,31 @@ async function seed(): Promise<void> {
   }
   console.log(`Posts: ${postsCreated} created\n`);
 
+  // ── 5.1. Recalculate tag post counters (idempotent) ──────────────────────
+  console.log("── Syncing Tag post counters ──");
+  const tagUsageRows: { tagId: string; postsCount: string }[] = await postRepo
+    .createQueryBuilder("post")
+    .innerJoin("post.tags", "tag")
+    .select("tag.id", "tagId")
+    .addSelect("COUNT(DISTINCT post.id)", "postsCount")
+    .where("post.isDeleted = :isDeleted", { isDeleted: false })
+    .groupBy("tag.id")
+    .getRawMany();
+  const postsCountByTagId = new Map<string, number>(
+    tagUsageRows.map((row) => [row.tagId, Number(row.postsCount)]),
+  );
+  let tagsCounterUpdated = 0;
+  for (const tag of tagMap.values()) {
+    const nextPostsCount = postsCountByTagId.get(tag.id) ?? 0;
+    if (tag.postsCount === nextPostsCount) {
+      continue;
+    }
+    await tagRepo.update(tag.id, { postsCount: nextPostsCount });
+    tag.postsCount = nextPostsCount;
+    tagsCounterUpdated++;
+  }
+  console.log(`Tag counters synced: ${tagsCounterUpdated} updated\n`);
+
   // ── 6. Answers ──────────────────────────────────────────────────────────
   console.log("── Seeding Answers ──");
   const answerEntities: Answer[] = [];
