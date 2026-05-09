@@ -140,7 +140,7 @@ export class PostService {
 
     const post = await this.findPostWithRelations(result.id);
     this.logger.log(`Post ${post.id} created by user ${userId}`);
-    return this.toPostResponse(post);
+    return this.toPostResponse(post, false, 0, (post.attachments || []).map(mapAttachmentToDto));
   }
 
   async listPosts(
@@ -207,10 +207,12 @@ export class PostService {
     const [posts, total] = await qb.skip(offset).take(limit).getManyAndCount();
 
     const postIds = posts.map((p) => p.id);
-    const voteMap = userId
-      ? await this.voteService.getUserPostVotes(userId, postIds)
-      : {};
-    const attachmentMap = await this.getAttachmentsForPosts(postIds);
+    const [voteMap, attachmentMap] = await Promise.all([
+      userId
+        ? this.voteService.getUserPostVotes(userId, postIds)
+        : Promise.resolve({}),
+      this.getAttachmentsForPosts(postIds),
+    ]);
 
     return {
       posts: posts.map((p) =>
