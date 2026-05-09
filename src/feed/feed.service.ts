@@ -1,9 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { Post } from "../post/entities/post.entity";
+import { PostAttachment } from "../post/entities/post-attachment.entity";
 import { VoteService } from "../vote/vote.service";
-import { PostResponseDto } from "../post/dto/post.dto";
+import {
+  mapAttachmentToDto,
+  PostAttachmentResponseDto,
+  PostResponseDto,
+} from "../post/dto/post.dto";
 import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { FeedQueryDto } from "./dto/feed-query.dto";
@@ -44,6 +49,8 @@ export class FeedService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepo: Repository<Post>,
+    @InjectRepository(PostAttachment)
+    private readonly attachmentRepo: Repository<PostAttachment>,
     private readonly voteService: VoteService,
   ) {}
 
@@ -186,8 +193,11 @@ export class FeedService {
     const postIds = resultRows.map((r: { id: string }) => r.id);
     const tagMap = await this.getTagsForPosts(postIds);
 
-    // Fetch user votes
-    const voteMap = await this.voteService.getUserPostVotes(userId, postIds);
+    // Fetch user votes and attachments in parallel
+    const [voteMap, attachmentMap] = await Promise.all([
+      this.voteService.getUserPostVotes(userId, postIds),
+      this.getAttachmentsForPosts(postIds),
+    ]);
 
     const posts: PostResponseDto[] = resultRows.map(
       (r: Record<string, unknown>) => ({
@@ -212,7 +222,7 @@ export class FeedService {
         userVote: voteMap[r.id as string] ?? 0,
         answerCount: Number(r.answerCount),
         viewCount: Number(r.viewCount),
-        attachments: [],
+        attachments: attachmentMap[r.id as string] ?? [],
         createdAt: new Date(r.createdAt as string),
         updatedAt: new Date(r.updatedAt as string),
       }),
@@ -267,6 +277,22 @@ export class FeedService {
         slug: t.slug,
         color: t.color,
       }));
+    }
+    return map;
+  }
+
+  private async getAttachmentsForPosts(
+    postIds: string[],
+  ): Promise<Record<string, PostAttachmentResponseDto[]>> {
+    if (postIds.length === 0) return {};
+    const attachments = await this.attachmentRepo.find({
+      where: { postId: In(postIds) },
+      order: { createdAt: "ASC" },
+    });
+    const map: Record<string, PostAttachmentResponseDto[]> = {};
+    for (const a of attachments) {
+      map[a.postId] ??= [];
+      map[a.postId].push(mapAttachmentToDto(a));
     }
     return map;
   }
