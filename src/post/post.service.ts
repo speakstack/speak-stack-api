@@ -20,6 +20,7 @@ import { sanitizeContent } from "../common/utils/sanitize";
 import {
   CreatePostDto,
   ListPostsQueryDto,
+  mapAttachmentToDto,
   PostAttachmentResponseDto,
   PostDetailResponseDto,
   PostListResponseDto,
@@ -209,9 +210,12 @@ export class PostService {
     const voteMap = userId
       ? await this.voteService.getUserPostVotes(userId, postIds)
       : {};
+    const attachmentMap = await this.getAttachmentsForPosts(postIds);
 
     return {
-      posts: posts.map((p) => this.toPostResponse(p, true, voteMap[p.id] ?? 0)),
+      posts: posts.map((p) =>
+        this.toPostResponse(p, true, voteMap[p.id] ?? 0, attachmentMap[p.id] ?? []),
+      ),
       pagination: buildPagination(page, limit, total),
     };
   }
@@ -387,6 +391,7 @@ export class PostService {
     post: Post,
     truncateContent = false,
     userVote: number = 0,
+    attachments: PostAttachmentResponseDto[] = [],
   ): PostResponseDto {
     return {
       id: post.id,
@@ -417,11 +422,9 @@ export class PostService {
       userVote,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
-      attachments: (post.attachments || []).map((a) =>
-        this.toAttachmentResponse(a),
-      ),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
+      attachments,
     };
   }
 
@@ -455,9 +458,7 @@ export class PostService {
         name: post.targetLanguage.name,
       },
       acceptedAnswerId: post.acceptedAnswerId,
-      attachments: (post.attachments || []).map((a) =>
-        this.toAttachmentResponse(a),
-      ),
+      attachments: (post.attachments || []).map(mapAttachmentToDto),
       score: post.score,
       userVote,
       answerCount: post.answerCount,
@@ -523,7 +524,7 @@ export class PostService {
     this.logger.log(
       `${files.length} attachment(s) uploaded for post ${postId} by user ${userId}`,
     );
-    return attachments.map((a) => this.toAttachmentResponse(a));
+    return attachments.map(mapAttachmentToDto);
   }
 
   async deleteAttachment(
@@ -557,18 +558,20 @@ export class PostService {
     );
   }
 
-  private toAttachmentResponse(
-    attachment: PostAttachment,
-  ): PostAttachmentResponseDto {
-    return {
-      id: attachment.id,
-      originalName: attachment.originalName,
-      url: attachment.storagePath,
-      mimeType: attachment.mimeType,
-      size: attachment.size,
-      type: attachment.type,
-      createdAt: attachment.createdAt,
-    };
+  private async getAttachmentsForPosts(
+    postIds: string[],
+  ): Promise<Record<string, PostAttachmentResponseDto[]>> {
+    if (postIds.length === 0) return {};
+    const attachments = await this.attachmentRepository.find({
+      where: { postId: In(postIds) },
+      order: { createdAt: "ASC" },
+    });
+    const map: Record<string, PostAttachmentResponseDto[]> = {};
+    for (const a of attachments) {
+      map[a.postId] ??= [];
+      map[a.postId].push(mapAttachmentToDto(a));
+    }
+    return map;
   }
 
   private truncateContent(content: string): string {
