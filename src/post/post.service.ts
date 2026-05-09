@@ -417,6 +417,9 @@ export class PostService {
       userVote,
       answerCount: post.answerCount,
       viewCount: post.viewCount,
+      attachments: (post.attachments || []).map((a) =>
+        this.toAttachmentResponse(a),
+      ),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     };

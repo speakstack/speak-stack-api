@@ -13,6 +13,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { PostStatus, PostType } from "../entities/post.entity";
+import type { PostAttachment } from "../entities/post-attachment.entity";
 import { PaginationDto } from "../../common/dto/pagination.dto";
 
 export enum PostSort {
@@ -183,6 +184,28 @@ export class PostLanguageDto {
   @ApiProperty() name: string;
 }
 
+export class PostAttachmentResponseDto {
+  @ApiProperty() id: string;
+  @ApiProperty() originalName: string;
+  @ApiProperty() url: string;
+  @ApiProperty() mimeType: string;
+  @ApiProperty() size: number;
+  @ApiProperty() type: string;
+  @ApiProperty() createdAt: Date;
+}
+
+export function mapAttachmentToDto(a: PostAttachment): PostAttachmentResponseDto {
+  return {
+    id: a.id,
+    originalName: a.originalName,
+    url: a.storagePath,
+    mimeType: a.mimeType,
+    size: a.size,
+    type: a.type,
+    createdAt: a.createdAt,
+  };
+}
+
 export class PostResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() type: string;
@@ -203,16 +226,8 @@ export class PostResponseDto {
   userVote: number;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
-}
-
-export class PostAttachmentResponseDto {
-  @ApiProperty() id: string;
-  @ApiProperty() originalName: string;
-  @ApiProperty() url: string;
-  @ApiProperty() mimeType: string;
-  @ApiProperty() size: number;
-  @ApiProperty() type: string;
-  @ApiProperty() createdAt: Date;
+  @ApiProperty({ type: [PostAttachmentResponseDto] })
+  attachments: PostAttachmentResponseDto[];
 }
 
 export class PostDetailResponseDto {

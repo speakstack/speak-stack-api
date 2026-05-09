@@ -212,6 +212,7 @@ export class FeedService {
         userVote: voteMap[r.id as string] ?? 0,
         answerCount: Number(r.answerCount),
         viewCount: Number(r.viewCount),
+        attachments: [],
         createdAt: new Date(r.createdAt as string),
         updatedAt: new Date(r.updatedAt as string),
       }),
