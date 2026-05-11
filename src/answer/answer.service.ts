@@ -337,20 +337,26 @@ export class AnswerService {
     });
 
     this.logger.log(`Answer ${answerId} accepted on post ${postId}`);
-    const actor = await this.userRepository.findOne({
-      where: { id: userId },
-      select: ["id", "username"],
-    });
-    if (actor) {
-      this.eventEmitter.emit(NOTIFICATION_EVENTS.ANSWER_ACCEPTED, {
-        type: "answer.accepted",
-        recipientId: answer.authorId,
-        actorId: userId,
-        actorUsername: actor.username,
-        entityId: answerId,
-        entityType: "answer",
-        postId,
-      } satisfies NotificationEvent);
+    try {
+      const actor = await this.userRepository.findOne({
+        where: { id: userId },
+        select: ["id", "username"],
+      });
+      if (actor) {
+        this.eventEmitter.emit(NOTIFICATION_EVENTS.ANSWER_ACCEPTED, {
+          type: "answer.accepted",
+          recipientId: answer.authorId,
+          actorId: userId,
+          actorUsername: actor.username,
+          entityId: answerId,
+          entityType: "answer",
+          postId,
+        } satisfies NotificationEvent);
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Failed to emit answer.accepted notification: ${(err as Error).message}`,
+      );
     }
     return this.postService.getPost(postId);
   }
