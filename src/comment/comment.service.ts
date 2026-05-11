@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Comment } from "./entities/comment.entity";
 import { Answer } from "../answer/entities/answer.entity";
 import { User } from "../user/entities/user.entity";
@@ -18,6 +19,10 @@ import {
 import { buildPagination } from "../common/dto/pagination.dto";
 import { BadgeService } from "../badge/badge.service";
 import { BadgeTriggerType } from "../badge/entities/badge.entity";
+import {
+  NOTIFICATION_EVENTS,
+  NotificationEvent,
+} from "../notification/notification.types";
 
 const COMMENT_CREATED_REP = 2;
 
@@ -32,6 +37,7 @@ export class CommentService {
     private readonly answerRepository: Repository<Answer>,
     private readonly dataSource: DataSource,
     private readonly badgeService: BadgeService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createComment(
@@ -89,6 +95,17 @@ export class CommentService {
     this.logger.log(
       `Comment ${comment!.id} created by user ${userId} on answer ${answerId}`,
     );
+    if (answer.authorId !== userId) {
+      this.eventEmitter.emit(NOTIFICATION_EVENTS.COMMENT_CREATED, {
+        type: "comment.created",
+        recipientId: answer.authorId,
+        actorId: userId,
+        actorUsername: comment!.user.username,
+        entityId: comment!.id,
+        entityType: "comment",
+        postId: answer.postId,
+      } satisfies NotificationEvent);
+    }
     return this.toCommentResponse(comment!);
   }
 

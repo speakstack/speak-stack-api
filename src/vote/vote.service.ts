@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { DataSource, In } from "typeorm";
 import { PostVote } from "./entities/post-vote.entity";
 import { AnswerVote } from "./entities/answer-vote.entity";
@@ -11,6 +12,10 @@ import { AppException } from "../common/exceptions/app.exception";
 import { ErrorCode } from "../common/enums/error-code.enum";
 import { BadgeService } from "../badge/badge.service";
 import { BadgeTriggerType } from "../badge/entities/badge.entity";
+import {
+  NOTIFICATION_EVENTS,
+  NotificationEvent,
+} from "../notification/notification.types";
 
 const POST_UPVOTE_REP = 3;
 const ANSWER_UPVOTE_REP = 5;
@@ -20,6 +25,7 @@ export class VoteService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly badgeService: BadgeService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async votePost(
@@ -27,7 +33,9 @@ export class VoteService {
     postId: string,
     value: number,
   ): Promise<VoteResponseDto> {
-    return this.dataSource.transaction(async (manager) => {
+    let notifPayload: NotificationEvent | null = null;
+
+    const result = await this.dataSource.transaction(async (manager) => {
       const post = await manager.findOne(Post, {
         where: { id: postId, isDeleted: false },
       });
@@ -114,6 +122,23 @@ export class VoteService {
             [BadgeTriggerType.UPVOTES_RECEIVED],
             manager,
           );
+
+          // capture notification data inside transaction where post is available
+          const actor = await manager.findOne(User, {
+            where: { id: userId },
+            select: ["id", "username"],
+          });
+          if (actor) {
+            notifPayload = {
+              type: "vote.received",
+              recipientId: post.authorId,
+              actorId: userId,
+              actorUsername: actor.username,
+              entityId: postId,
+              entityType: "post",
+              postId,
+            };
+          }
         } else if (finalValue === -1) {
           await manager.increment(Post, { id: postId }, "downvoteCount", 1);
         }
@@ -146,6 +171,12 @@ export class VoteService {
         userVote: finalValue,
       };
     });
+
+    if (notifPayload) {
+      this.eventEmitter.emit(NOTIFICATION_EVENTS.VOTE_RECEIVED, notifPayload);
+    }
+
+    return result;
   }
 
   async voteAnswer(
@@ -153,7 +184,9 @@ export class VoteService {
     answerId: string,
     value: number,
   ): Promise<VoteResponseDto> {
-    return this.dataSource.transaction(async (manager) => {
+    let notifPayload: NotificationEvent | null = null;
+
+    const result = await this.dataSource.transaction(async (manager) => {
       const answer = await manager.findOne(Answer, {
         where: { id: answerId, isDeleted: false },
       });
@@ -241,6 +274,22 @@ export class VoteService {
             [BadgeTriggerType.UPVOTES_RECEIVED],
             manager,
           );
+
+          const actor = await manager.findOne(User, {
+            where: { id: userId },
+            select: ["id", "username"],
+          });
+          if (actor) {
+            notifPayload = {
+              type: "vote.received",
+              recipientId: answer.authorId,
+              actorId: userId,
+              actorUsername: actor.username,
+              entityId: answerId,
+              entityType: "answer",
+              postId: answer.postId,
+            };
+          }
         } else if (finalValue === -1) {
           await manager.increment(Answer, { id: answerId }, "downvoteCount", 1);
         }
@@ -277,6 +326,12 @@ export class VoteService {
         userVote: finalValue,
       };
     });
+
+    if (notifPayload) {
+      this.eventEmitter.emit(NOTIFICATION_EVENTS.VOTE_RECEIVED, notifPayload);
+    }
+
+    return result;
   }
 
   /**
