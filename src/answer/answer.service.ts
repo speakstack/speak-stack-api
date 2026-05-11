@@ -1,6 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import {
+  NOTIFICATION_EVENTS,
+  NotificationEvent,
+} from "../notification/notification.types";
 import { Answer } from "./entities/answer.entity";
 import { Post, PostStatus } from "../post/entities/post.entity";
 import { User } from "../user/entities/user.entity";
@@ -43,6 +48,7 @@ export class AnswerService {
     private readonly postService: PostService,
     private readonly voteService: VoteService,
     private readonly badgeService: BadgeService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createAnswer(
@@ -107,6 +113,17 @@ export class AnswerService {
     this.logger.log(
       `Answer ${answer!.id} created by user ${userId} on post ${postId}`,
     );
+    if (post.authorId !== userId) {
+      this.eventEmitter.emit(NOTIFICATION_EVENTS.ANSWER_CREATED, {
+        type: "answer.created",
+        recipientId: post.authorId,
+        actorId: userId,
+        actorUsername: answer!.author.username,
+        entityId: answer!.id,
+        entityType: "answer",
+        postId,
+      } satisfies NotificationEvent);
+    }
     return this.toAnswerResponse(answer!);
   }
 
@@ -320,6 +337,19 @@ export class AnswerService {
     });
 
     this.logger.log(`Answer ${answerId} accepted on post ${postId}`);
+    const actor = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ["id", "username"],
+    });
+    this.eventEmitter.emit(NOTIFICATION_EVENTS.ANSWER_ACCEPTED, {
+      type: "answer.accepted",
+      recipientId: answer.authorId,
+      actorId: userId,
+      actorUsername: actor!.username,
+      entityId: answerId,
+      entityType: "answer",
+      postId,
+    } satisfies NotificationEvent);
     return this.postService.getPost(postId);
   }
 
