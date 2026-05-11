@@ -9,10 +9,8 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { Server, Socket } from "socket.io";
 import * as jwt from "jsonwebtoken";
 import { JwtPayload } from "../auth/types/tokens.type";
-import {
-  NOTIFICATION_EVENTS,
-  NotificationEvent,
-} from "./notification.types";
+import { NOTIFICATION_EVENTS } from "./notification.types";
+import type { NotificationEvent } from "./notification.types";
 
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || "at-secret-key";
 

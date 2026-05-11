@@ -43,6 +43,8 @@ import { Channel } from "./chat/entities/channel.entity";
 import { ChatMessage } from "./chat/entities/chat-message.entity";
 import { ChatMessageAttachment } from "./chat/entities/chat-message-attachment.entity";
 import { ChatModule } from "./chat/chat.module";
+import { NotificationModule } from "./notification/notification.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 import { LoggerModule } from "./common/logger/logger.module";
 import { RequestContextMiddleware } from "./common/logger/request-context.middleware";
 import { HttpLoggerMiddleware } from "./common/logger/http-logger.middleware";
@@ -59,6 +61,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
   imports: [
     LoggerModule,
     MetricsModule,
+    EventEmitterModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig],
@@ -115,6 +118,7 @@ import { SnakeNamingStrategy } from "./config/snake-naming.strategy";
     BadgeModule,
     LeaderboardModule,
     ChatModule,
+    NotificationModule,
   ],
   providers: [
     {
