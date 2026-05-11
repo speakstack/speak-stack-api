@@ -341,15 +341,17 @@ export class AnswerService {
       where: { id: userId },
       select: ["id", "username"],
     });
-    this.eventEmitter.emit(NOTIFICATION_EVENTS.ANSWER_ACCEPTED, {
-      type: "answer.accepted",
-      recipientId: answer.authorId,
-      actorId: userId,
-      actorUsername: actor!.username,
-      entityId: answerId,
-      entityType: "answer",
-      postId,
-    } satisfies NotificationEvent);
+    if (actor) {
+      this.eventEmitter.emit(NOTIFICATION_EVENTS.ANSWER_ACCEPTED, {
+        type: "answer.accepted",
+        recipientId: answer.authorId,
+        actorId: userId,
+        actorUsername: actor.username,
+        entityId: answerId,
+        entityType: "answer",
+        postId,
+      } satisfies NotificationEvent);
+    }
     return this.postService.getPost(postId);
   }
 
